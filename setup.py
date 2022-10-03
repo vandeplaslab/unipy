@@ -36,14 +36,14 @@ packages = [
 tests = [p + ".tests" for p in packages]
 
 setuptools.setup(
-    name="hannibal-specter",
+    name="unipy",
     version="0.0.1",
     author="R.A.R. MOENS",
-    author_email="rogermoens@delfius.nl",
-    description="A small package for robust matrix decomposition.",
+    author_email="r.a.r.moens@tudelft.nl",
+    description="A wrapper package unifying numpy, scipy and cupy.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/RogerMoens/hannibal-specter",
+    url="https://github.com/vandeplas/unipy",
     packages=packages + tests,
     install_requires=install_requires,
     classifiers=[
