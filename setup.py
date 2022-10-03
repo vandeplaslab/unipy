@@ -7,13 +7,7 @@ install_requires = [
     "numpy >= 1.19.4",
     "scipy >= 1.5.4",
     "scikit-learn",
-    "scikit-image",
     "fbpca >= 1.0",
-    "joblib",
-    "h5py",
-    "astropy",
-    "hdfdict",
-    "matplotlib",
 ]
 
 # extras_require["complete"] = sorted({v for req in extras_require.values() for v in req})
