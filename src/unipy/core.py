@@ -705,6 +705,36 @@ def amax(
     elif hs_math == "cupyx.scipy.sparse":
         return a.max(axis, out=out)
 
+def copyto(a: array, b: array) -> array:
+    """Copy matrices without reallocating memory
+
+    Parameters
+    ----------
+    a : array
+        Destination array
+
+    b : array
+        Source array
+
+    Returns
+    -------
+        bool : whether copy was succesfull
+
+    """
+    _, hs_math_a= find_package(a)
+    _, hs_math_b= find_package(b)
+    if hs_math_a != hs_math_b:
+        return False
+    if hs_math_a == "numpy":
+        numpy.copyto(a, b)
+        return True
+    elif hs_math_b == "scipy.sparse":
+        return False
+    elif hs_math_a == "cupy":
+        cupy.copyto(a, b)
+        return True
+    elif hs_math_b == "cupyx.scipy.sparse":
+        return False
 
 def sum(
     a: array,
