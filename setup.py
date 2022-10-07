@@ -14,9 +14,10 @@ install_requires = [
 
 packages = [
     "unipy",
+    "unipy.linalg",
 ]
 
-tests = [p + ".tests" for p in packages]
+#tests = ["/.tests" for p in packages]
 
 setuptools.setup(
     name="unipy",
@@ -27,7 +28,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/vandeplas/unipy",
-    packages=packages + tests,
+    #packages=packages + tests,
     install_requires=install_requires,
     classifiers=[
         "Programming Language :: Python :: 3",
