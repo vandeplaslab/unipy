@@ -1,12 +1,9 @@
-import numpy
 import pytest
-import scipy.sparse
-import scipy.sparse.linalg
 
 cupy = pytest.importorskip("cupy")
 cupyx = pytest.importorskip("cupyx")
 
-from ..core import *
+from unipy.core import *
 
 
 @pytest.mark.parametrize(
