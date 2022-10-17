@@ -1,0 +1,10 @@
+include LICENSE
+recursive-include unipy *.pyi
+recursive-include unipy *.pyi
+recursive-include unipy *.yaml
+
+# explicit excludes to keep check-manifest happy and remind us that
+# these things are not being included unless we ask
+recursive-exclude docs *
+recursive-exclude unipy *.pyc
+

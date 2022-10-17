@@ -69,12 +69,13 @@ jobs:
       # see tox.ini for more
       - name: Test with tox
         uses: GabrielBB/xvfb-action@v1
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          BACKEND: ${{ matrix.backend }}
+          TOXENV: ${{ matrix.toxenv }}
         with:
           run: python -m tox
-#        env:
-#          PLATFORM: ${{ matrix.platform }}
-#          BACKEND: ${{ matrix.backend }}
-#          TOXENV: ${{ matrix.toxenv }}
+
 #      - uses: actions/upload-artifact@v3
 #        with:
 #          name: upload pytest timing reports as json
