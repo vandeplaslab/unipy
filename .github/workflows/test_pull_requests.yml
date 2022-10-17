@@ -38,15 +38,6 @@ jobs:
             platform: windows-latest
           - python: 3.9
             platform: macos-latest
-          # minimum specified requirements
-          - python: 3.8
-            platform: ubuntu-18.04
-          # test with --async_only
-          - python: 3.8
-            platform: ubuntu-18.04
-          # test without any Qt backends
-          - python: 3.8
-            platform: ubuntu-18.04
 
     steps:
       - name: Cancel Previous Runs
@@ -84,14 +75,14 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
           BACKEND: ${{ matrix.backend }}
           TOXENV: ${{ matrix.toxenv }}
-      - uses: actions/upload-artifact@v3
-        with:
-          name: upload pytest timing reports as json
-          path: |
-            ./report-*.json
-
-      - name: Coverage
-        uses: codecov/codecov-action@v3
+#      - uses: actions/upload-artifact@v3
+#        with:
+#          name: upload pytest timing reports as json
+#          path: |
+#            ./report-*.json
+#
+#      - name: Coverage
+#        uses: codecov/codecov-action@v3
 
   test_pip_install:
     name: ubuntu-latest 3.9 pip install
