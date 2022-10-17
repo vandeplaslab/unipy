@@ -71,10 +71,10 @@ jobs:
         uses: GabrielBB/xvfb-action@v1
         with:
           run: python -m tox
-        env:
-          PLATFORM: ${{ matrix.platform }}
-          BACKEND: ${{ matrix.backend }}
-          TOXENV: ${{ matrix.toxenv }}
+#        env:
+#          PLATFORM: ${{ matrix.platform }}
+#          BACKEND: ${{ matrix.backend }}
+#          TOXENV: ${{ matrix.toxenv }}
 #      - uses: actions/upload-artifact@v3
 #        with:
 #          name: upload pytest timing reports as json
@@ -83,24 +83,24 @@ jobs:
 #
 #      - name: Coverage
 #        uses: codecov/codecov-action@v3
-
-  test_pip_install:
-    name: ubuntu-latest 3.9 pip install
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-          cache: "pip"
-
-      - name: Install this commit
-        run: |
-          pip install --upgrade pip
-          pip install "[all,testing]"
-
-      - name: Test
-        with:
-          run: python -m pytest --pyargs unipy --color=yes
+#
+#  test_pip_install:
+#    name: ubuntu-latest 3.9 pip install
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#
+#      - name: Set up Python 3.9
+#        uses: actions/setup-python@v4
+#        with:
+#          python-version: 3.9
+#          cache: "pip"
+#
+#      - name: Install this commit
+#        run: |
+#          pip install --upgrade pip
+#          pip install "[all,testing]"
+#
+#      - name: Test
+#        with:
+#          run: python -m pytest --pyargs unipy --color=yes
