@@ -7,4 +7,5 @@ recursive-include unipy *.yaml
 # these things are not being included unless we ask
 recursive-exclude docs *
 recursive-exclude unipy *.pyc
+recursive-exclude tests *
 
