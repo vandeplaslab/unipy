@@ -1,37 +1,18 @@
-import numpy
+"""Test linalg namespace."""
 import pytest
 import scipy.sparse
 import scipy.sparse.linalg
 
-from ..core import *
-from ..core import _numpy_to_sparse, _sparse_to_numpy
-from ..linalg import *
-from ..linalg import (
-    _arpack,
-    _convert_datatype,
-    _fbpca,
-    _lobpcg,
-    _numpy_gesdd,
-    _order,
-    _propack,
-    _pytorch,
-    _pytorch_randomized,
-    _randomized,
-    _recycling_randomized,
-    _scipy_gesdd,
-    _scipy_gesvd,
-    _sparse_arpack,
-    _sparse_fbpca,
-    _sparse_lobpcg,
-    _sparse_propack,
-    _sparse_randomized,
-    _svd_arraytype,
-    _svd_invert_arraytype,
-    _svd_invert_transpose,
-    _svd_transpose,
-    _svdecon,
-    _unpack,
-)
+from unipy.core import *
+from unipy.linalg import *
+from unipy.linalg import (_arpack, _convert_datatype, _fbpca, _lobpcg,
+                          _numpy_gesdd, _order, _propack, _pytorch,
+                          _pytorch_randomized, _randomized,
+                          _recycling_randomized, _scipy_gesdd, _scipy_gesvd,
+                          _sparse_arpack, _sparse_fbpca, _sparse_lobpcg,
+                          _sparse_propack, _sparse_randomized, _svd_arraytype,
+                          _svd_invert_arraytype, _svd_invert_transpose,
+                          _svd_transpose, _svdecon, _unpack)
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -147,9 +128,9 @@ def test__svd_arraytype():
     hs_math_b, b_out = _svd_arraytype(b, method)
 
     assert hs_math == "numpy"
-    assert (a_out == a).all() == True
+    assert (a_out == a).all()
     assert hs_math_b == "scipy.sparse"
-    assert (b_out == b).all() == True
+    assert (b_out == b).all()
 
 
 @pytest.mark.filterwarnings("ignore:The type of input")
@@ -164,9 +145,9 @@ def test__svd_invert_arraytype():
     z_invert = _svd_invert_arraytype(z, hs_math)
 
     assert find_package(b_invert)[1] == hs_math
-    assert (b.toarray() == b_invert.toarray()).all() == True
+    assert (b.toarray() == b_invert.toarray()).all()
     assert find_package(z_invert[0])[1] == hs_math
-    assert isinstance(z_invert, tuple) == True
+    assert isinstance(z_invert, tuple)
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -180,10 +161,10 @@ def test__svd_transpose(a, b):
     if trans_arg is True:
         assert d.shape[0] == c.shape[1]
         assert d.shape[1] == c.shape[0]
-        assert (transpose(d) == c).all() == True
+        assert (transpose(d) == c).all()
     else:
         assert d.shape == c.shape
-        assert (d == c).all() == True
+        assert (d == c).all()
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -196,7 +177,7 @@ def test__svd_invert_transpose(a, b, compute_uv):
     q = numpy.linalg.svd(d, full_matrices=False, compute_uv=compute_uv)
     l = _svd_invert_transpose(q, trans_arg)
 
-    assert isinstance(l, type(q_true)) == True
+    assert isinstance(l, type(q_true))
     if compute_uv is True:
         assert (
             numpy.linalg.norm(
@@ -232,12 +213,12 @@ def test__unpack(compute_uv):
     b4 = _unpack(a4, compute_uv)
 
     if compute_uv is True:
-        assert (a == b).all() == True
+        assert (a == b).all()
         assert len(a1) == len(b1)
         assert len(a2) == len(b2)
         assert isinstance(b2, tuple)
-        assert (a3 == b3).all() == True
-        assert (a4 == b4).all() == True
+        assert (a3 == b3).all()
+        assert (a4 == b4).all()
     else:
         assert isinstance(b, numpy.ndarray)
         assert isinstance(b1, numpy.ndarray)
@@ -262,15 +243,15 @@ def test__order():
     q_ordered2 = _order(tuple(q_copy), 10)
     u = numpy.linalg.svd(b, compute_uv=False, full_matrices=False)
 
-    assert (_order(a, 0) == a[argsort(a)[::-1]]).all() == True
+    assert (_order(a, 0) == a[argsort(a)[::-1]]).all()
     assert _order(a, 10).shape == a[:10].shape
-    assert (q_ordered[0] == q[0]).all() == True
-    assert (q_ordered[1] == q[1]).all() == True
-    assert (q_ordered[2] == q[2]).all() == True
+    assert (q_ordered[0] == q[0]).all()
+    assert (q_ordered[1] == q[1]).all()
+    assert (q_ordered[2] == q[2]).all()
     assert q_ordered2[0].shape[1] == 10
     assert q_ordered2[1].shape[0] == 10
     assert q_ordered2[2].shape[0] == 10
-    assert isinstance(_order(u, 0), numpy.ndarray) == True
+    assert isinstance(_order(u, 0), numpy.ndarray)
 
 
 @pytest.mark.parametrize("dtype", ["int8", "int16", "int32", "float32", "float64"])
@@ -294,7 +275,7 @@ def test__numpy_gesdd(a, b, compute_uv):
     d = _numpy_gesdd(c, compute_uv)
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -312,7 +293,7 @@ def test__numpy_gesdd(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, "fro")) < 1e-4
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == min(a, b)
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, "fro")) < 1e-4
 
@@ -325,7 +306,7 @@ def test__scipy_gesdd(a, b, compute_uv):
     d = _scipy_gesdd(c, compute_uv)
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -343,7 +324,7 @@ def test__scipy_gesdd(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, "fro")) < 1e-4
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == min(a, b)
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, "fro")) < 1e-4
 
@@ -356,7 +337,7 @@ def test__scipy_gesvd(a, b, compute_uv):
     d = _scipy_gesvd(c, compute_uv)
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -374,7 +355,7 @@ def test__scipy_gesvd(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, "fro")) < 1e-4
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == min(a, b)
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, "fro")) < 1e-4
 
@@ -387,7 +368,7 @@ def test__randomized(a, b, compute_uv):
     d = _randomized(c, 1, compute_uv, 10, 2, None, "auto")
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -405,7 +386,7 @@ def test__randomized(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, 2)) < 1e-2
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == 1
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, 2)) < 1e-2
 
@@ -418,7 +399,7 @@ def test__arpack(a, b, compute_uv):
     d = _arpack(c, 1, compute_uv, None, 2, None, None)
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -436,7 +417,7 @@ def test__arpack(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, 2)) < 1e-2
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == 1
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, 2)) < 1e-2
 
@@ -450,7 +431,7 @@ def test__lobpcg(a, b, compute_uv):
     d = _lobpcg(c, 1, compute_uv, None, 2, None, None)
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -468,7 +449,7 @@ def test__lobpcg(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, 2)) < 1e-2
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == 1
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, 2)) < 1e-2
 
@@ -481,7 +462,7 @@ def test__propack(a, b, compute_uv):
     c = numpy.random.rand(a, b)
     d = _propack(c, 1, compute_uv, None, 2, None, None)
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -499,7 +480,7 @@ def test__propack(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, 2)) < 1e-2
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == 1
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, 2)) < 1e-2
 
@@ -512,7 +493,7 @@ def test__svdecon(a, b, compute_uv):
     d = _svdecon(c, compute_uv)
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -530,7 +511,7 @@ def test__svdecon(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, "fro")) < 1e-4
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == min(a, b)
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, "fro")) < 1e-4
 
@@ -543,7 +524,7 @@ def test__fbpca(a, b, compute_uv):
     d = _fbpca(c, 1, compute_uv)
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -561,11 +542,12 @@ def test__fbpca(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, 2)) < 1e-2
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == 1
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, 2)) < 1e-2
 
 
+@pytest.mark.skipif(not HAS_TORCH, reason="PyTorch is not installed.")
 @pytest.mark.parametrize("a", [20, 50, 100])
 @pytest.mark.parametrize("b", [20, 50, 150])
 @pytest.mark.parametrize("compute_uv", [True, False])
@@ -574,7 +556,7 @@ def test__pytorch_randomized(a, b, compute_uv):
     d = _pytorch_randomized(c, compute_uv, 1, 2)
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -592,7 +574,7 @@ def test__pytorch_randomized(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, 2)) < 2e-1
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == 1
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, 2)) < 1e-1
 
@@ -613,7 +595,7 @@ def test__recycling_randomized(a, b, v0, compute_uv, recycling, iter_type):
     d = _recycling_randomized(c, compute_uv, v0, 1, 10, 2, recycling, None, iter_type)
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -631,7 +613,7 @@ def test__recycling_randomized(a, b, v0, compute_uv, recycling, iter_type):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, 2)) < 1e-2
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == 1
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, 2)) < 1e-2
 
@@ -645,7 +627,7 @@ def test__sparse_arpack(a, b, compute_uv):
     d = _sparse_arpack(c_sparse, 1, compute_uv, None, 2, None, None)
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -663,7 +645,7 @@ def test__sparse_arpack(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, 2)) < 1e-2
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == 1
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, 2)) < 1e-2
 
@@ -678,7 +660,7 @@ def test__sparse_lobpcg(a, b, compute_uv):
     d = _sparse_lobpcg(c_sparse, 1, compute_uv, None, 2, None, None)
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -696,7 +678,7 @@ def test__sparse_lobpcg(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, 2)) < 1e-2
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == 1
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, 2)) < 1e-2
 
@@ -710,7 +692,7 @@ def test__sparse_propack(a, b, compute_uv):
     c_sparse = scipy.sparse.csc_matrix(c)
     d = _sparse_propack(c_sparse, 1, compute_uv, None, 2, None, None)
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -728,7 +710,7 @@ def test__sparse_propack(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, 2)) < 1e-2
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == 1
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, 2)) < 1e-2
 
@@ -742,7 +724,7 @@ def test__sparse_fbpca(a, b, compute_uv):
     d = _sparse_fbpca(c_sparse, 1, compute_uv)
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -760,7 +742,7 @@ def test__sparse_fbpca(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, 2)) < 1e-2
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == 1
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, 2)) < 1e-2
 
@@ -774,7 +756,7 @@ def test__sparse_randomized(a, b, compute_uv):
     d = _sparse_randomized(c, 1, compute_uv, 10, 2, None, "auto")
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -792,11 +774,12 @@ def test__sparse_randomized(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, 2)) < 1e-2
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == 1
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, 2)) < 1e-2
 
 
+@pytest.mark.skipif(not HAS_TORCH, reason="PyTorch is not installed.")
 @pytest.mark.parametrize("a", [1, 10, 100])
 @pytest.mark.parametrize("b", [1, 10, 100])
 @pytest.mark.parametrize("compute_uv", [True, False])
@@ -805,7 +788,7 @@ def test__pytorch(a, b, compute_uv):
     d = _pytorch(c, compute_uv)
 
     if compute_uv is True:
-        assert isinstance(d, tuple) == True
+        assert isinstance(d, tuple)
         assert (
             numpy.linalg.norm(
                 absolute(matmul(transpose(d[0]), d[0])) - numpy.eye(d[0].shape[1]),
@@ -823,7 +806,7 @@ def test__pytorch(a, b, compute_uv):
         )
         assert abs(numpy.linalg.norm(d[1], 2) - numpy.linalg.norm(c, "fro")) < 1e-4
     else:
-        assert isinstance(d, numpy.ndarray) == True
+        assert isinstance(d, numpy.ndarray)
         assert d.size == min(a, b)
         assert abs(numpy.linalg.norm(d, 2) - numpy.linalg.norm(c, "fro")) < 1e-4
 
@@ -844,8 +827,6 @@ def test__pytorch(a, b, compute_uv):
         "svdecon",
         "fbpca",
         "recycling_randomized",
-        "pytorch",
-        "pytorch_randomized",
         "sparse_arpack",
         "sparse_lobpcg",
         "sparse_fbpca",
@@ -859,7 +840,29 @@ def test_svd(a, sparse, compute_uv, method):
         isinstance(q, tuple)
         or isinstance(q, numpy.ndarray)
         or isinstance(q, scipy.sparse.spmatrix)
-    ) == True
+    )
+
+
+@pytest.mark.skipif(not HAS_TORCH, reason="PyTorch is not installed.")
+@pytest.mark.filterwarnings("ignore:The type of input")
+@pytest.mark.parametrize("a", [numpy.random.rand(50, 40)])
+@pytest.mark.parametrize("sparse", [False, True])
+@pytest.mark.parametrize("compute_uv", [True, False])
+@pytest.mark.parametrize(
+    "method",
+    [
+        "pytorch",
+        "pytorch_randomized",
+    ],
+)
+def test_svd(a, sparse, compute_uv, method):
+    a = scipy.sparse.csc_matrix(a) if sparse is True else a
+    q = svd(a, {"method": method, "compute_uv": compute_uv})
+    assert (
+        isinstance(q, tuple)
+        or isinstance(q, numpy.ndarray)
+        or isinstance(q, scipy.sparse.spmatrix)
+    )
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -868,4 +871,4 @@ def test_svd(a, sparse, compute_uv, method):
 def test_pinv(a, b, dtype):
     c = astype(numpy.random.rand(a, b), dtype)
 
-    assert (pinv(c) == numpy.linalg.pinv(c)).all() == True
+    assert (pinv(c) == numpy.linalg.pinv(c)).all()

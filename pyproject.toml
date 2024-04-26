@@ -1,0 +1,53 @@
+[build-system]
+requires = [
+  "setuptools >= 42",
+  "wheel",
+  "setuptools_scm[toml]>=3.4"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "src/unipy/_version.py"
+
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+
+[tool.black]
+line-length = 120
+target-version = ['py36', 'py37', 'py38']
+include = '\.pyi?$'
+exclude = '.asv'
+
+[tool.check-manifest]
+ignore = [
+  ".cirrus.yml",
+  ".pre-commit-config.yaml",
+  "asv.conf.json",
+  "codecov.yml",
+  "Makefile",
+  "src/unipy/_version.py",  # added during build by setuptools_scm
+  "tox.ini",
+  "*.pyi",  # added by make typestubs
+  ".env_sample",
+  ".devcontainer/*",
+]
+
+[tool.pytest]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+    "ignore::RuntimeWarning",
+    # ignored by default
+    "ignore::ImportWarning",
+    "ignore::PendingDeprecationWarning",
+    # raised by Cython, usually harmless
+    "ignore:numpy.dtype size changed:RuntimeWarning",
+    "ignore:numpy.ufunc size changed:RuntimeWarnin"
+]
+markers = [
+    "slow: mark a test as being slow so can be skipped if only want to run the quick tests"
+]

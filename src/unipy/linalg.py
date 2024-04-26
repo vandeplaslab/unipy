@@ -8,42 +8,16 @@ import scipy.sparse
 import scipy.sparse.linalg
 import sklearn.utils.extmath
 
-from .core import *
-from .core import _cupy_to_numpy, _numpy_to_cupy, _numpy_to_sparse, _sparse_to_numpy
-
-array = Union[numpy.ndarray, scipy.sparse.spmatrix]
-min_array = numpy.ndarray
-gpu_array = None
-gpu_min_array = None
-gpu_sparse_array = None
-
 try:
     import cupy
     import cupyx
     import cupyx.scipy.sparse.linalg
-
-    array = Union[
-        numpy.ndarray,
-        cupy.ndarray,
-        scipy.sparse.spmatrix,
-        cupyx.scipy.sparse.spmatrix,
-    ]
-    min_array = Union[
-        numpy.ndarray,
-        cupy.ndarray,
-    ]
-    gpu_array = Union[
-        cupy.ndarray,
-        cupyx.scipy.sparse.spmatrix,
-    ]
-    gpu_min_array = cupy.ndarray
-    gpu_sparse_array = cupyx.scipy.sparse.spmatrix
-
-except ImportError as e:
+except ImportError:
     print(
-        "Note: cupy and/or cupyx (toolboxes) cannot be found, they are not necessary to use Hannibal Specter."
+        "Note: cupy and/or cupyx (toolboxes) cannot be found, they are not necessary to use unipy."
     )
-    pass
+    cupy, cupyx = None, None
+HAS_CUPY = cupy is not None
 
 try:
     import torch
@@ -51,77 +25,26 @@ except ImportError as e:
     print(
         "Note: torch (toolbox) cannot be found, it is not necessary to use Hannibal Specter."
     )
-    pass
+    torch = None
+HAS_TORCH = torch is not None
 
-short_name_class = {
-    "numpy": "numpy",
-    "scipy.sparse": "sparse",
-    "cupy": "cupy",
-    "cupyx.scipy.sparse": "cupy_sparse",
-}
-
-svd_input = {
-    "numpy": [
-        "numpy_gesdd",
-        "scipy_gesdd",
-        "scipy_gesvd",
-        "randomized",
-        "arpack",
-        "lobpcg",
-        "propack",
-        "svdecon",
-        "fbpca",
-        "recycling_randomized",
-        "pytorch",
-        "pytorch_randomized",
-    ],
-    "scipy.sparse": [
-        "sparse_arpack",
-        "sparse_lobpcg",
-        "sparse_propack",
-        "sparse_fbpca",
-        "sparse_randomized",
-    ],
-    "cupy": [
-        "cupy_gesvd",
-        "cupy_recycling_randomized",
-        "cupy_svdecon",
-        "cupy_pytorch",
-        "cupy_pytorch_randomized",
-    ],
-    "cupyx.scipy.sparse": ["cupy_sparse_svds"],
-}
-
-sv_required = [
-    "randomized",
-    "arpack",
-    "lobpcg",
-    "propack",
-    "fbpca",
-    "recycling_randomized",
-    "pytorch_randomized",
-    "sparse_arpack",
-    "sparse_lobpcg",
-    "sparse_propack",
-    "sparse_fbpca",
-    "sparse_randomized",
-    "cupy_recycling_randomized",
-    "cupy_pytorch_randomized",
-    "cupy_sparse_svds",
-]
+from . import types as ty
+from .core import (_sparse_to_numpy, _numpy_to_sparse, absolute, append, argsort, astype, matmul,
+                   randn, real, sqrt, tocupy, tonumpy, transpose)
+from .utilities import find_package
 
 
-def eigh(a: min_array) -> tuple[min_array, min_array]:
+def eigh(a: ty.MinArray) -> tuple[ty.MinArray, ty.MinArray]:
     """Return eigenvalue decomposition of symmetric hermitian matrix
 
     Parameters
     ----------
-    a : min_array
+    a : ty.MinArray
        Input array
 
     Returns
     -------
-        tuple[min_array, min_array] : Arrays containing eigenvalues and eigenvectors
+        tuple[ty.MinArray, ty.MinArray] : Arrays containing eigenvalues and eigenvectors
 
     """
     a, hs_math = find_package(a)
@@ -133,17 +56,17 @@ def eigh(a: min_array) -> tuple[min_array, min_array]:
         raise Exception("EIGH decomposition not found for " + hs_math)
 
 
-def eigvalsh(a: min_array) -> min_array:
+def eigvalsh(a: ty.MinArray) -> ty.MinArray:
     """Return eigenvalues of symmetric hermitian matrix
 
     Parameters
     ----------
-    a : min_array
+    a : ty.MinArray
        Input array
 
     Returns
     -------
-        min_array: Array containing eigenvalues
+        ty.MinArray: Array containing eigenvalues
 
     """
     a, hs_math = find_package(a)
@@ -155,17 +78,17 @@ def eigvalsh(a: min_array) -> min_array:
         raise Exception("EIGVALSH decomposition not found for " + hs_math)
 
 
-def pinv(a: min_array) -> min_array:
+def pinv(a: ty.MinArray) -> ty.MinArray:
     """Compute the (Moore-Penrose) pseudo-inverse of an array
 
     Parameters
     ----------
-    a : min_array
+    a : ty.MinArray
        Input array
 
     Returns
     -------
-        min_array: Array containing pseudo-inverse
+        ty.MinArray: Array containing pseudo-inverse
 
     """
     a, hs_math = find_package(a)
@@ -178,13 +101,13 @@ def pinv(a: min_array) -> min_array:
 
 
 def qr(
-    a: min_array, overwrite_a: bool = False, mode: str = "full"
-) -> tuple[min_array, min_array]:
+    a: ty.MinArray, overwrite_a: bool = False, mode: str = "full"
+) -> tuple[ty.MinArray, ty.MinArray]:
     """Return QR decomposition. Note that the mode contains differences for numpy and cupy matrices.
 
     Parameters
     ----------
-    a : min_array
+    a : ty.MinArray
        Input array
 
     overwrite_a: bool, default=False
@@ -196,7 +119,7 @@ def qr(
 
     Returns
     -------
-        tuple[min_array, min_array] : Arrays containing Q an R of decomposition
+        tuple[ty.MinArray, ty.MinArray] : Arrays containing Q an R of decomposition
 
     """
     a, hs_math = find_package(a)
@@ -209,13 +132,13 @@ def qr(
 
 
 def lu(
-    a: min_array, overwrite_a: bool = False, permute_l: bool = False
-) -> Union[tuple[min_array, min_array], tuple[min_array]]:
+    a: ty.MinArray, overwrite_a: bool = False, permute_l: bool = False
+) -> Union[tuple[ty.MinArray, ty.MinArray], tuple[ty.MinArray]]:
     """Return LU decomposition
 
     Parameters
     ----------
-    a : min_array
+    a : ty.MinArray
        Input array
 
     overwrite_a: bool, default=False
@@ -226,7 +149,7 @@ def lu(
 
     Returns
     -------
-        tuple[min_array, min_array, (min_array)] : Arrays containing P, L and U of decomposition
+        tuple[ty.MinArray, ty.MinArray, (ty.MinArray)] : Arrays containing P, L and U of decomposition
 
     """
     a, hs_math = find_package(a)
@@ -237,19 +160,20 @@ def lu(
     else:
         raise Exception("LU decomposition not found for " + hs_math)
 
+
 def norm(
-    a: array,
+    a: ty.Array,
     ord: Union[None, int, str] = None,
     axis: Union[None, int, tuple] = None,
     keepdims: bool = False,
-) -> Union[array, float]:
+) -> Union[ty.Array, float]:
     """Calculate norm of input array and convert to lowest float32 (for int)
        Note that for ord=2, the svds is used for sparse matrices. In that case
        it is necessary that the input array has datatype float or double.
 
     Parameters
     ----------
-    a : array
+    a : ty.Array
         Input array
 
     ord : Union[None, int, str], default=None
@@ -314,24 +238,25 @@ def requires_sv(method: str) -> bool:
     Parameters
     ----------
     method: string
-        See `svd_input` for accepted methods
+        See `ty.SVD_INPUT` for accepted methods
 
     Returns
     -------
         bool: True when method requires `sv`, False when not.
 
     """
-    if method in sv_required:
+    if method in ty.SV_REQUIRES:
         return True
     else:
         return False
 
-def svd(a: array, b: Union[dict, None] = None) -> Union[array, tuple[array]]:
+
+def svd(a: ty.Array, b: Union[dict, None] = None) -> Union[ty.Array, tuple[ty.Array]]:
     """Perform different singular value decomposition implementation
 
     Parameters
     ----------
-    a: array
+    a: ty.Array
         Input array
 
     b: Union[dict, None], default=None
@@ -375,7 +300,7 @@ def _set_options(a: Union[dict, None], max_rank: int) -> dict:
     a : Union[dict, None]
         Dictionary containing options:
             method: string, default=scipy_gesvd
-                See `svd_input` for accepted methods
+                See `ty.SVD_INPUT` for accepted methods
 
             compute_uv: bool, default=True
                 Need for u and v to be calculated/returned
@@ -422,7 +347,7 @@ def _set_options(a: Union[dict, None], max_rank: int) -> dict:
             "random_state": None,
         }
     else:
-        #n_oversamples = 
+        # n_oversamples =
         options = {
             "method": "scipy_gesvd" if "method" not in a else a["method"],
             "compute_uv": True if "compute_uv" not in a else a["compute_uv"],
@@ -438,16 +363,16 @@ def _set_options(a: Union[dict, None], max_rank: int) -> dict:
     return options
 
 
-def _svd_arraytype(a: array, method: str) -> tuple[str, array]:
+def _svd_arraytype(a: ty.Array, method: str) -> tuple[str, ty.Array]:
     """Check if arraytype of input array matches with input arraytype for the corresponding svd method and convert it if necessary.
 
     Parameters
     ----------
-    a : array
+    a : ty.Array
         Input matrix
 
     method : str
-        Svd method to be performed. See `svd_input` for accepted methods.
+        Svd method to be performed. See `ty.SVD_INPUT` for accepted methods.
 
     Returns
     -------
@@ -455,12 +380,12 @@ def _svd_arraytype(a: array, method: str) -> tuple[str, array]:
 
     """
     a, hs_math = find_package(a)
-    if method in svd_input[hs_math]:
+    if method in ty.SVD_INPUT[hs_math]:
         return (hs_math, a)
     else:
         val = None
-        for key in svd_input.keys():
-            if method in svd_input[key]:
+        for key in ty.SVD_INPUT.keys():
+            if method in ty.SVD_INPUT[key]:
                 val = key
         if val is None:
             raise Exception("No convertion is found for " + method)
@@ -468,14 +393,16 @@ def _svd_arraytype(a: array, method: str) -> tuple[str, array]:
         warnings.warn(
             "The type of input array is changed, this may lead to overhead due to GPU/CPU transition or sparse/dense transition."
         )
-        a = eval("_" + short_name_class[hs_math] + "_to_" + short_name_class[val])(a)
+        a = eval(
+            "_" + ty.SHORT_NAME_CLASS[hs_math] + "_to_" + ty.SHORT_NAME_CLASS[val]
+        )(a)
 
         return (hs_math, a)
 
 
 def _svd_invert_arraytype(
-    a: Union[array, tuple[array]], hs_math: str
-) -> Union[array, tuple[array]]:
+    a: Union[ty.Array, tuple[ty.Array]], hs_math: str
+) -> Union[ty.Array, tuple[ty.Array]]:
     """Invert arraytype (numpy, scipy.sparse, cupy, cupyx.sparse) to original arraytype
 
     Parameters
@@ -503,9 +430,9 @@ def _svd_invert_arraytype(
             a = [
                 eval(
                     "_"
-                    + short_name_class[hs_math_current]
+                    + ty.SHORT_NAME_CLASS[hs_math_current]
                     + "_to_"
-                    + short_name_class[hs_math]
+                    + ty.SHORT_NAME_CLASS[hs_math]
                 )(q)
                 for q in a
             ]
@@ -513,19 +440,19 @@ def _svd_invert_arraytype(
         else:
             a = eval(
                 "_"
-                + short_name_class[hs_math_current]
+                + ty.SHORT_NAME_CLASS[hs_math_current]
                 + "_to_"
-                + short_name_class[hs_math]
+                + ty.SHORT_NAME_CLASS[hs_math]
             )(a)
         return a
 
 
-def _svd_transpose(a: array) -> tuple[bool, array]:
+def _svd_transpose(a: ty.Array) -> tuple[bool, ty.Array]:
     """Transpose input matrix for SVD if m > n for A [m x n]
 
     Parameters
     ----------
-    a : array
+    a : ty.Array
         Input matrix
 
     Returns
@@ -540,8 +467,8 @@ def _svd_transpose(a: array) -> tuple[bool, array]:
 
 
 def _svd_invert_transpose(
-    a: Union[array, tuple[array]], trans_arg: bool
-) -> Union[array, tuple[array]]:
+    a: Union[ty.Array, tuple[ty.Array]], trans_arg: bool
+) -> Union[ty.Array, tuple[ty.Array]]:
     """Backtranspose the output matrices, such that the original input matrix shape is obtained
 
     Parameters
@@ -566,9 +493,9 @@ def _svd_invert_transpose(
 
 
 def _unpack(
-    a: Union[array, tuple[array], list],
+    a: Union[ty.Array, tuple[ty.Array], list],
     compute_uv: bool,
-) -> Union[array, tuple[array]]:
+) -> Union[ty.Array, tuple[ty.Array]]:
     """Unpack SVD result
 
     Parameters
@@ -594,7 +521,9 @@ def _unpack(
         return a
 
 
-def _order(a: Union[array, tuple[array]], sv: int) -> Union[array, tuple[array]]:
+def _order(
+    a: Union[ty.Array, tuple[ty.Array]], sv: int
+) -> Union[ty.Array, tuple[ty.Array]]:
     """Order SVD result: large singular values to small and truncate
 
     Parameters
@@ -628,9 +557,9 @@ def _order(a: Union[array, tuple[array]], sv: int) -> Union[array, tuple[array]]
 
 
 def _convert_datatype(
-    a: Union[array, tuple[array]],
+    a: Union[ty.Array, tuple[ty.Array]],
     dtype: str,
-) -> Union[array, tuple[array]]:
+) -> Union[ty.Array, tuple[ty.Array]]:
     """Convert datatype to predefined, without copying original matrix
 
     Parameters
@@ -646,7 +575,7 @@ def _convert_datatype(
         Union[array, tuple[array]]: Array containing converted datatype
 
     """
-    dtype = 'float32' if dtype in ['int8', 'int16', 'int32', 'int64'] else dtype
+    dtype = "float32" if dtype in ["int8", "int16", "int32", "int64"] else dtype
     if isinstance(a, tuple):
         a = list(a)
         a[0] = astype(a[0], dtype=dtype, copy=False)
@@ -745,7 +674,7 @@ def _randomized(
 
     Parameters
     ----------
-    a: array
+    a: ty.Array
         Input array
 
     compute_uv: bool
@@ -804,7 +733,7 @@ def _arpack(
     compute_uv: bool,
     n_oversamples: int,
     n_iter: Union[int, None],
-    v0: Union[array, None],
+    v0: Union[ty.Array, None],
     random_state: Union[int, None],
     *args,
     **kwargs,
@@ -813,7 +742,7 @@ def _arpack(
 
     Parameters
     ----------
-    a: array
+    a: ty.Array
         Input array
 
     compute_uv: bool
@@ -845,7 +774,7 @@ def _arpack(
     return scipy.sparse.linalg.svds(
         a,
         k=sv,
-        v0=v0[0,:] if v0 is not None else v0,
+        v0=v0[0, :] if v0 is not None else v0,
         ncv=n_oversamples,
         maxiter=n_iter,
         return_singular_vectors=compute_uv,
@@ -861,7 +790,7 @@ def _lobpcg(
     compute_uv: bool,
     n_oversamples: int,
     n_iter: Union[int, None],
-    v0: Union[array, None],
+    v0: Union[ty.Array, None],
     random_state: Union[int, None],
     *args,
     **kwargs,
@@ -870,7 +799,7 @@ def _lobpcg(
 
     Parameters
     ----------
-    a: array
+    a: ty.Array
         Input array
 
     compute_uv: bool
@@ -901,7 +830,7 @@ def _lobpcg(
     return scipy.sparse.linalg.svds(
         a,
         k=sv,
-        v0=v0[0,:] if v0 is not None else v0,
+        v0=v0[0, :] if v0 is not None else v0,
         ncv=n_oversamples,
         maxiter=n_iter,
         return_singular_vectors=compute_uv,
@@ -917,7 +846,7 @@ def _propack(
     compute_uv: bool,
     n_oversamples: int,
     n_iter: Union[int, None],
-    v0: Union[array, None],
+    v0: Union[ty.Array, None],
     random_state: Union[int, None],
     *args,
     **kwargs,
@@ -926,7 +855,7 @@ def _propack(
 
     Parameters
     ----------
-    a: array
+    a: ty.Array
         Input array
 
     compute_uv: bool
@@ -957,7 +886,7 @@ def _propack(
     return scipy.sparse.linalg.svds(
         a,
         k=sv,
-        v0=v0[0,:] if v0 is not None else v0,
+        v0=v0[0, :] if v0 is not None else v0,
         ncv=n_oversamples,
         maxiter=n_iter,
         return_singular_vectors=compute_uv,
@@ -968,13 +897,13 @@ def _propack(
 
 
 def _svdecon(
-    a: min_array, compute_uv: bool, *args, **kwargs
-) -> Union[min_array, tuple[min_array]]:
+    a: ty.MinArray, compute_uv: bool, *args, **kwargs
+) -> Union[ty.MinArray, tuple[ty.MinArray]]:
     """SVD through eigenvalue decomposition
 
     Parameters
     ----------
-    a: min_array
+    a: ty.MinArray
         Input array
 
     compute_uv: bool
@@ -982,7 +911,7 @@ def _svdecon(
 
     Returns
     -------
-        Union[min_array, tuple[min_array]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
+        Union[ty.MinArray, tuple[ty.MinArray]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
 
     """
     _q = [0, 0, 0]
@@ -1035,9 +964,9 @@ def _fbpca(
 
 
 def _recycling_randomized(
-    a: min_array,
+    a: ty.MinArray,
     compute_uv: bool,
-    v0: Union[min_array, None],
+    v0: Union[ty.MinArray, None],
     sv: int,
     n_oversamples: int,
     n_iter: Union[int, None],
@@ -1046,12 +975,12 @@ def _recycling_randomized(
     iter_type: Union[str, None],
     *args,
     **kwargs,
-) -> Union[min_array, tuple[min_array]]:
+) -> Union[ty.MinArray, tuple[ty.MinArray]]:
     """Truncated svd from own implementation with possibility of recycling the vt space.
 
     Parameters
     ----------
-    a: min_array
+    a: ty.MinArray
         Input array
 
     compute_uv: bool
@@ -1082,7 +1011,7 @@ def _recycling_randomized(
         Type of iteration: lu, qr, or power
     Returns
     -------
-        Union[min_array, tuple[min_array]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
+        Union[ty.MinArray, tuple[ty.MinArray]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
 
     """
     sv = 1 if sv == 0 else sv
@@ -1137,8 +1066,8 @@ def _recycling_randomized(
 
     if iter_type == "qr":
         for i in range(n_iter):
-            q, _ = qr(matmul(a, q), mode='economic')
-            q, _ = qr(matmul(transpose(a), q), mode='economic')
+            q, _ = qr(matmul(a, q), mode="economic")
+            q, _ = qr(matmul(transpose(a), q), mode="economic")
     elif iter_type == "lu":
         for i in range(n_iter):
             q, _ = lu(matmul(a, q), permute_l=True)
@@ -1147,24 +1076,22 @@ def _recycling_randomized(
         for i in range(n_iter):
             q = matmul(a, q)
             q = matmul(transpose(a), q)
-    elif iter_type == 'new-qr':
+    elif iter_type == "new-qr":
         for i in range(n_iter):
-            q, _ = qr(matmul(transpose(a), matmul(a, q)), mode='economic')
+            q, _ = qr(matmul(transpose(a), matmul(a, q)), mode="economic")
     else:
         raise Exception("Iter type not found:  " + iter_type)
-        
+
     q = matmul(a, q)
-    q, _ = qr(q, mode='economic', overwrite_a=False)
+    q, _ = qr(q, mode="economic", overwrite_a=False)
     b = matmul(transpose(q), a)
-    method = 'scipy_gesdd' if find_package(b)[1] == 'numpy' else 'cupy_gesvd'
+    method = "scipy_gesdd" if find_package(b)[1] == "numpy" else "cupy_gesvd"
     if compute_uv is True:
         u, s, vt = svd(b, {"method": method, "compute_uv": True})
         u = matmul(q, u)
         return (u[:, :sv], s[:sv], vt[:sv, :])
     else:
-        return svd(b, {"method": method, "compute_uv": False})[
-            :sv
-        ]
+        return svd(b, {"method": method, "compute_uv": False})[:sv]
 
 
 @functools.wraps(_arpack)
@@ -1193,13 +1120,13 @@ def _sparse_randomized(*args, **kwargs) -> Union[numpy.ndarray, tuple[numpy.ndar
 
 
 def _cupy_gesvd(
-    a: gpu_min_array, compute_uv: bool, *args, **kwargs
-) -> Union[gpu_min_array, tuple[gpu_min_array]]:
+    a: ty.GPUMinArray, compute_uv: bool, *args, **kwargs
+) -> Union[ty.GPUMinArray, tuple[ty.GPUMinArray]]:
     """GESVD implementation through cupy
 
     Parameters
     ----------
-     a: gpu_min_array
+     a: ty.GPUMinArray
         Input array
 
     compute_uv: bool
@@ -1207,7 +1134,7 @@ def _cupy_gesvd(
 
     Returns
     -------
-        Union[gpu_min_array, tuple[gpu_min_array]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
+        Union[ty.GPUMinArray, tuple[ty.GPUMinArray]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
 
     """
     return cupy.linalg.svd(a, full_matrices=False, compute_uv=compute_uv)
@@ -1216,29 +1143,29 @@ def _cupy_gesvd(
 @functools.wraps(_recycling_randomized)
 def _cupy_recycling_randomized(
     *args, **kwargs
-) -> Union[gpu_min_array, tuple[gpu_min_array]]:
+) -> Union[ty.GPUMinArray, tuple[ty.GPUMinArray]]:
     return _recycling_randomized(*args, **kwargs)
 
 
 @functools.wraps(_svdecon)
-def _cupy_svdecon(*args, **kwargs) -> Union[gpu_min_array, tuple[gpu_min_array]]:
+def _cupy_svdecon(*args, **kwargs) -> Union[ty.GPUMinArray, tuple[ty.GPUMinArray]]:
     return _svdecon(*args, **kwargs)
 
 
 def _cupy_sparse_svds(
-    a: gpu_array,
+    a: ty.GPUArray,
     compute_uv: bool,
     sv: int,
     n_oversamples: int,
     n_iter: Union[int, None],
     *args,
     **kwargs,
-) -> Union[gpu_array, tuple[gpu_array]]:
+) -> Union[ty.GPUArray, tuple[ty.GPUArray]]:
     """Truncated svd implementation through cupy
 
     Parameters
     ----------
-     a: gpu_array
+     a: ty.GPUArray
         Input array
 
     compute_uv: bool
@@ -1255,7 +1182,7 @@ def _cupy_sparse_svds(
 
     Returns
     -------
-        Union[gpu_array, tuple[gpu_array]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
+        Union[ty.GPUArray, tuple[ty.GPUArray]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
 
     """
     sv = 1 if sv == 0 else sv
@@ -1340,13 +1267,13 @@ def _pytorch_randomized(
 
 
 def _cupy_pytorch(
-    a: gpu_min_array, compute_uv: bool, *args, **kwargs
-) -> Union[gpu_min_array, tuple[gpu_min_array]]:
+    a: ty.GPUMinArray, compute_uv: bool, *args, **kwargs
+) -> Union[ty.GPUMinArray, tuple[ty.GPUMinArray]]:
     """Pytorch svd implementation
 
     Parameters
     ----------
-     a: gpu_min_array
+     a: ty.GPUMinArray
         Input array
 
     compute_uv: bool
@@ -1354,7 +1281,7 @@ def _cupy_pytorch(
 
     Returns
     -------
-        Union[gpu_min_array, tuple[gpu_min_array]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
+        Union[ty.GPUMinArray, tuple[ty.GPUMinArray]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
 
     """
     _q = torch.svd(torch.as_tensor(a, device="cuda"), some=True, compute_uv=compute_uv)
@@ -1369,18 +1296,18 @@ def _cupy_pytorch(
 
 
 def _cupy_pytorch_randomized(
-    a: gpu_min_array,
+    a: ty.GPUMinArray,
     compute_uv: bool,
     sv: int,
     n_iter: Union[int, None],
     *args,
     **kwargs,
-) -> Union[gpu_min_array, tuple[gpu_min_array]]:
+) -> Union[ty.GPUMinArray, tuple[ty.GPUMinArray]]:
     """Pytorch randomized svd implementation
 
     Parameters
     ----------
-     a: gpu_min_array
+     a: ty.GPUMinArray
         Input array
 
     compute_uv: bool
@@ -1394,7 +1321,7 @@ def _cupy_pytorch_randomized(
 
     Returns
     -------
-        Union[gpu_min_array, tuple[gpu_min_array]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
+        Union[ty.GPUMinArray, tuple[ty.GPUMinArray]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
 
     """
     sv = 1 if sv == 0 else sv
