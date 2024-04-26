@@ -846,6 +846,11 @@ def _atype_list_to_string(atype: list[str]) -> str:
         and atype.count("cupyx.scipy.sparse") == 0
     ):
         atype = "numpy"
+    elif (
+        atype.count("cupy") > 0
+        and atype.count("cupyx.scipy.sparse") > 0
+    ):
+        atype = "cupyx.scipy.sparse"
     else:
         raise Exception(
             "Cannot define a particular package for this operation. This can be due to multiple incompatible inputs."
@@ -1122,7 +1127,7 @@ def _cupy_to_cupy_sparse(a: gpu_min_array) -> gpu_sparse_array:
        gpu_sparse_array : converted array
 
     """
-    return cupyx.scipy.sparse.csc_matrix(a)
+    return cupyx.scipy.sparse.csc_matrix(cupy.asnumpy(a))
 
 
 def _sparse_to_cupy(a: scipy.sparse.spmatrix) -> gpu_min_array:

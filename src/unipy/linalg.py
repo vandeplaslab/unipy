@@ -9,7 +9,7 @@ import scipy.sparse.linalg
 import sklearn.utils.extmath
 
 from .core import *
-from .core import _cupy_to_numpy, _numpy_to_cupy, _numpy_to_sparse, _sparse_to_numpy
+from .core import _cupy_to_numpy, _numpy_to_cupy, _numpy_to_sparse, _sparse_to_numpy, _sparse_to_cupy, _cupy_sparse_to_cupy, _cupy_to_cupy_sparse
 
 array = Union[numpy.ndarray, scipy.sparse.spmatrix]
 min_array = numpy.ndarray
@@ -20,6 +20,7 @@ gpu_sparse_array = None
 try:
     import cupy
     import cupyx
+    import cupyx.scipy.linalg
     import cupyx.scipy.sparse.linalg
 
     array = Union[
@@ -81,6 +82,7 @@ svd_input = {
         "sparse_propack",
         "sparse_fbpca",
         "sparse_randomized",
+        "sparse_recycling_randomized",
     ],
     "cupy": [
         "cupy_gesvd",
@@ -89,7 +91,10 @@ svd_input = {
         "cupy_pytorch",
         "cupy_pytorch_randomized",
     ],
-    "cupyx.scipy.sparse": ["cupy_sparse_svds"],
+    "cupyx.scipy.sparse": [
+        "cupy_sparse_svds",
+        "cupy_sparse_recycling_randomized",
+    ],
 }
 
 sv_required = [
@@ -105,6 +110,7 @@ sv_required = [
     "sparse_propack",
     "sparse_fbpca",
     "sparse_randomized",
+    "sparse_recycling_randomized"
     "cupy_recycling_randomized",
     "cupy_pytorch_randomized",
     "cupy_sparse_svds",
@@ -347,6 +353,7 @@ def svd(a: array, b: Union[dict, None] = None) -> Union[array, tuple[array]]:
     dtype = a.dtype
     hs_math, a = _svd_arraytype(a, options["method"])
     trans_arg, a = _svd_transpose(a)
+    # print('original_package', hs_math)
     a = eval("_" + options["method"])(
         a,
         compute_uv=options["compute_uv"],
@@ -362,8 +369,15 @@ def svd(a: array, b: Union[dict, None] = None) -> Union[array, tuple[array]]:
     a = _order(a, options["sv"])
     a = _convert_datatype(a, dtype)
     a = _svd_invert_transpose(a, trans_arg)
+    # print('4 - ', a[1], type(a[1]), a[1].dtype, a[1].shape)
+    # print('4 - ', type(a[0]), a[0].dtype, a[0].shape)
+    # print('4 - ', type(a[2]), a[2].dtype, a[2].shape)
+    # print(len(a))
     a = _svd_invert_arraytype(a, hs_math)
-
+    # print('5 - ', a[1], type(a[1]), a[1].dtype, a[1].shape)
+    # print('5 - ', type(a[0]), a[0].dtype, a[0].shape)
+    # print('5 - ', type(a[2]), a[2].dtype, a[2].shape)
+    # print(len(a))
     return a
 
 
@@ -840,13 +854,12 @@ def _arpack(
 
     """
     sv = 1 if sv == 0 else sv
-    n_oversamples = 2 if n_oversamples == 0 else n_oversamples
-
+    #n_oversamples = 2 if n_oversamples == 0 else n_oversamples
     return scipy.sparse.linalg.svds(
         a,
         k=sv,
-        v0=v0[0,:] if v0 is not None else v0,
-        ncv=n_oversamples,
+        v0=v0 if v0 is not None else v0,
+        #ncv=n_oversamples,
         maxiter=n_iter,
         return_singular_vectors=compute_uv,
         which="LM",
@@ -897,12 +910,12 @@ def _lobpcg(
 
     """
     sv = 1 if sv == 0 else sv
-    n_oversamples = 2 if n_oversamples == 0 else n_oversamples
+    #n_oversamples = 2 if n_oversamples == 0 else n_oversamples
     return scipy.sparse.linalg.svds(
         a,
         k=sv,
-        v0=v0[0,:] if v0 is not None else v0,
-        ncv=n_oversamples,
+        v0=v0 if v0 is not None else v0,
+        #ncv=n_oversamples,
         maxiter=n_iter,
         return_singular_vectors=compute_uv,
         which="LM",
@@ -953,12 +966,12 @@ def _propack(
 
     """
     sv = 1 if sv == 0 else sv
-    n_oversamples = 2 if n_oversamples == 0 else n_oversamples
+    #n_oversamples = 2 if n_oversamples == 0 else n_oversamples
     return scipy.sparse.linalg.svds(
         a,
         k=sv,
-        v0=v0[0,:] if v0 is not None else v0,
-        ncv=n_oversamples,
+        v0=v0 if v0 is not None else v0,
+        #ncv=n_oversamples,
         maxiter=n_iter,
         return_singular_vectors=compute_uv,
         which="LM",
@@ -1407,3 +1420,271 @@ def _cupy_pytorch_randomized(
         _q = cupy.asarray(_q[1])
 
     return _q
+
+
+def _cupy_sparse_recycling_randomized(
+    a: min_array,
+    compute_uv: bool,
+    v0: Union[min_array, None],
+    sv: int,
+    n_oversamples: int,
+    n_iter: Union[int, None],
+    recycling: int,
+    random_state: Union[int, None],
+    iter_type: Union[str, None],
+    *args,
+    **kwargs,
+) -> Union[min_array, tuple[min_array]]:
+    """Truncated svd from own implementation with possibility of recycling the vt space.
+
+    Parameters
+    ----------
+    a: min_array
+        Input array
+
+    compute_uv: bool
+        Need for u and v to be calculated/returned
+
+    v0: Union[array, None]
+        Basis used for as warm start
+
+    n_oversamples: int
+        Number of oversamples for randomized methods
+
+    n_iter: Union[int, None]
+        Number of iterations for randomized methods
+
+    sv: int
+        Number of singular values for randomized methods
+
+    random_state: Union[int, None]
+        Random seed for randomized methods
+
+    recycling: int
+        Accepted values are 0, 1 and 2. Defines the degree of recycling of vectors for recycling_randomized methods.
+        0: no recycling
+        1: recycle whole vt from a previous iteration
+        2: recycle whole vt from previous iteration and sample space orthogonal to vt
+
+    iter_type: Union[str, None]
+        Type of iteration: lu, qr, or power
+    Returns
+    -------
+        Union[min_array, tuple[min_array]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
+
+    """
+    sv = 1 if sv == 0 else sv
+    n_iter = 1 if n_iter is None else n_iter
+    m, n = a.shape
+    if recycling == 0:
+        q = randn(
+            n,
+            min([sv + n_oversamples, n]),
+            atype="cupy",
+            dtype=a.dtype,
+            random_state=random_state,
+        )
+    elif recycling == 1:
+        if v0 is not None:
+            v0 = v0.reshape(1, -1) if v0.ndim == 1 else v0
+            q = randn(
+                n,
+                min([sv + n_oversamples - v0.shape[0], n]),
+                atype="cupy",
+                dtype=a.dtype,
+            )
+            q = append(v0.T, q / norm(q, 2, axis=0), axis=1)
+        else:
+            q = randn(
+                n,
+                min([sv + n_oversamples, n]),
+                atype="cupy",
+                dtype=a.dtype,
+                random_state=random_state,
+            )
+    elif recycling == 2:
+        if v0 is not None:
+            v0 = v0.reshape(1, -1) if v0.ndim == 1 else v0
+            q = randn(
+                n,
+                min([sv + n_oversamples - v0.shape[0], n]),
+                atype="cupy",
+                dtype=a.dtype,
+                random_state=random_state,
+            )
+            q = q - matmul(transpose(v0), matmul(v0, q))
+            q = append(transpose(v0), q / norm(q, 2, axis=0), axis=1)
+        else:
+            q = randn(
+                n,
+                min([sv + n_oversamples, n]),
+                atype="cupy",
+                dtype=a.dtype,
+                random_state=random_state,
+            )
+
+    if iter_type == "qr":
+        for i in range(n_iter):
+            q, _ = qr(matmul(a, q), mode='economic')
+            q, _ = qr(matmul(transpose(a), q), mode='economic')
+    elif iter_type == "lu":
+        for i in range(n_iter):
+            q, _ = lu(matmul(a, q), permute_l=True)
+            q, _ = lu(matmul(transpose(a), q), permute_l=True)
+    elif iter_type == "power":
+        for i in range(n_iter):
+            q = matmul(a, q)
+            q = matmul(transpose(a), q)
+    elif iter_type == 'new-qr':
+        for i in range(n_iter):
+            q, _ = qr(matmul(transpose(a), matmul(a, q)), mode='economic')
+    else:
+        raise Exception("Iter type not found:  " + iter_type)
+        
+    q = matmul(a, q)
+    q, _ = qr(q, mode='economic', overwrite_a=False)
+    b = transpose(matmul(transpose(a), q))
+    method = 'scipy_gesdd' if find_package(b)[1] == 'numpy' else 'cupy_gesvd'
+    if compute_uv is True:
+        u, s, vt = svd(b, {"method": method, "compute_uv": True})
+        u = matmul(q, u)
+        # print(s, sv, s[:sv], type(s))
+        return (u[:, :sv], s[:sv], vt[:sv, :])
+    else:
+        return svd(b, {"method": method, "compute_uv": False})[
+            :sv
+        ]
+    
+    
+def _sparse_recycling_randomized(
+    a: min_array,
+    compute_uv: bool,
+    v0: Union[min_array, None],
+    sv: int,
+    n_oversamples: int,
+    n_iter: Union[int, None],
+    recycling: int,
+    random_state: Union[int, None],
+    iter_type: Union[str, None],
+    *args,
+    **kwargs,
+) -> Union[min_array, tuple[min_array]]:
+    """Truncated svd from own implementation with possibility of recycling the vt space.
+
+    Parameters
+    ----------
+    a: min_array
+        Input array
+
+    compute_uv: bool
+        Need for u and v to be calculated/returned
+
+    v0: Union[array, None]
+        Basis used for as warm start
+
+    n_oversamples: int
+        Number of oversamples for randomized methods
+
+    n_iter: Union[int, None]
+        Number of iterations for randomized methods
+
+    sv: int
+        Number of singular values for randomized methods
+
+    random_state: Union[int, None]
+        Random seed for randomized methods
+
+    recycling: int
+        Accepted values are 0, 1 and 2. Defines the degree of recycling of vectors for recycling_randomized methods.
+        0: no recycling
+        1: recycle whole vt from a previous iteration
+        2: recycle whole vt from previous iteration and sample space orthogonal to vt
+
+    iter_type: Union[str, None]
+        Type of iteration: lu, qr, or power
+    Returns
+    -------
+        Union[min_array, tuple[min_array]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
+
+    """
+    sv = 1 if sv == 0 else sv
+    n_iter = 1 if n_iter is None else n_iter
+    m, n = a.shape
+    if recycling == 0:
+        q = randn(
+            n,
+            min([sv + n_oversamples, n]),
+            atype="numpy",
+            dtype=a.dtype,
+            random_state=random_state,
+        )
+    elif recycling == 1:
+        if v0 is not None:
+            v0 = v0.reshape(1, -1) if v0.ndim == 1 else v0
+            q = randn(
+                n,
+                min([sv + n_oversamples - v0.shape[0], n]),
+                atype="numpy",
+                dtype=a.dtype,
+            )
+            q = append(v0.T, q / norm(q, 2, axis=0), axis=1)
+        else:
+            q = randn(
+                n,
+                min([sv + n_oversamples, n]),
+                atype="numpy",
+                dtype=a.dtype,
+                random_state=random_state,
+            )
+    elif recycling == 2:
+        if v0 is not None:
+            v0 = v0.reshape(1, -1) if v0.ndim == 1 else v0
+            q = randn(
+                n,
+                min([sv + n_oversamples - v0.shape[0], n]),
+                atype="numpy",
+                dtype=a.dtype,
+                random_state=random_state,
+            )
+            q = q - matmul(transpose(v0), matmul(v0, q))
+            q = append(transpose(v0), q / norm(q, 2, axis=0), axis=1)
+        else:
+            q = randn(
+                n,
+                min([sv + n_oversamples, n]),
+                atype="numpy",
+                dtype=a.dtype,
+                random_state=random_state,
+            )
+
+    if iter_type == "qr":
+        for i in range(n_iter):
+            q, _ = qr(a@q, mode='economic')
+            q, _ = qr(transpose(a)@q, mode='economic')
+    elif iter_type == "lu":
+        for i in range(n_iter):
+            q, _ = lu(matmul(a, q), permute_l=True)
+            q, _ = lu(matmul(transpose(a), q), permute_l=True)
+    elif iter_type == "power":
+        for i in range(n_iter):
+            q = matmul(a, q)
+            q = matmul(transpose(a), q)
+    elif iter_type == 'new-qr':
+        for i in range(n_iter):
+            q, _ = qr(transpose(a)@(a@q), mode='economic')
+    else:
+        raise Exception("Iter type not found:  " + iter_type)
+        
+    q = a@q
+    q, _ = qr(q, mode='economic', overwrite_a=False)
+    b = transpose(transpose(a)@q)
+    method = 'scipy_gesdd' if find_package(b)[1] == 'numpy' else 'scipy_gesvd'
+    if compute_uv is True:
+        u, s, vt = svd(b, {"method": method, "compute_uv": True})
+        u = q@u
+        # print(s, sv, s[:sv], type(s))
+        return (u[:, :sv], s[:sv], vt[:sv, :])
+    else:
+        return svd(b, {"method": method, "compute_uv": False})[
+            :sv
+        ]
