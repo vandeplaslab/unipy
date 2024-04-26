@@ -1,10 +1,70 @@
 [build-system]
-requires = [
-  "setuptools >= 42",
-  "wheel",
-  "setuptools_scm[toml]>=3.4"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "unipy"
+description = "A wrapper package unifying numpy, scipy and cupy."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.7"
+version = "0.0.1"
+authors = [
+    { name = "Van de Plas Lab", email = "r.a.r.moens@tudelft.nl" },
 ]
-build-backend = "setuptools.build_meta"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "fbpca >= 1.0",
+    "numpy<1.19.4",
+    "scikit-learn",
+    "scipy>=1.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=20.8b1",
+    "check-manifest>=0.42",
+    "coverage>=5.0.3",
+    "flake8>=3.8.4",
+    "isort>=5.9.3",
+    "pre-commit>=2.9.0",
+    "pytest-cov>=2.12.1",
+    "pytest>=7.1.0",
+]
+gpu = [
+    "cupy",
+    "pytorch",
+]
+testing = [
+    "coverage>=5.0.3",
+    "pytest-cov>=2.12.1",
+    "pytest>=7.1.0",
+]
+
+[project.urls]
+Download = "https://github.com/vandeplaslab/unipy"
+Homepage = "https://github.com/vandeplaslab/unipy"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+]
 
 [tool.setuptools_scm]
 write_to = "src/unipy/_version.py"
