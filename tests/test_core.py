@@ -1,10 +1,9 @@
-import numpy
 import pytest
 import scipy.sparse
 import scipy.sparse.linalg
 
-from ..core import *
-from ..core import _numpy_to_sparse, _sparse_to_numpy
+from unipy.core import *
+from unipy.core import _numpy_to_sparse, _sparse_to_numpy
 
 
 @pytest.mark.parametrize(
@@ -23,7 +22,7 @@ def test_sqrt():
     a = numpy.random.rand(5, 5)
     b = scipy.sparse.csc_matrix(a)
 
-    assert (sqrt(a) == sqrt(b)).all() == True
+    assert (sqrt(a) == sqrt(b)).all()
     assert (sqrt(a)).shape == a.shape
     assert (sqrt(b)).shape == b.shape
 
@@ -144,7 +143,7 @@ def test_matmul_equal():
     prod_a = matmul(a.T, a)
     prod_b = matmul(b.T, b)
 
-    assert (prod_a == prod_b).all() == True
+    assert (prod_a == prod_b).all()
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -152,7 +151,7 @@ def test_matmul_equal():
 @pytest.mark.parametrize("atype", ["numpy", "scipy.sparse"])
 @pytest.mark.parametrize("dtype", ["int8", "int16", "int32", "float32", "float64"])
 def test_matmul(a, b, atype, dtype):
-    c = zeros((a, b), atype, dtype)
+    c = zeros((a, b), atype=atype, dtype=dtype)
     d = matmul(c.T, c)
 
     assert d.shape == (b, b)
@@ -166,7 +165,7 @@ def test_matmul(a, b, atype, dtype):
 @pytest.mark.parametrize("atype", ["numpy", "scipy.sparse"])
 @pytest.mark.parametrize("dtype", ["int8", "int16", "int32", "float32", "float64"])
 def test_multiply(a, b, atype, dtype):
-    c = zeros((a, b), atype, dtype)
+    c = zeros((a, b), atype=atype, dtype=dtype)
     d = multiply(c, c)
 
     assert d.shape == (a, b)
@@ -181,7 +180,7 @@ def test_multiply_equal():
     prod_a = matmul(a, a)
     prod_b = matmul(b, b)
 
-    assert (prod_a == prod_b).all() == True
+    assert (prod_a == prod_b).all()
 
 
 def test_multiply_overwrite():
@@ -211,7 +210,7 @@ def test_astype():
     a_astype = a.astype("float32")
     b_astype = b.astype("float32")
 
-    assert (a_astype == b_astype).all() == True
+    assert (a_astype == b_astype).all()
     assert a_astype.shape == a.shape
     assert b_astype.shape == b.shape
 
@@ -223,7 +222,7 @@ def test_transpose():
     a_transpose = transpose(a)
     b_transpose = transpose(b)
 
-    assert (a_transpose == b_transpose).all() == True
+    assert (a_transpose == b_transpose).all()
     assert a_transpose.shape == a.shape[::-1]
     assert b_transpose.shape == b.shape[::-1]
 
@@ -232,7 +231,7 @@ def test_argsort():
     a = numpy.array([1, 5, 6, 8, 9])
     a_argsort = argsort(a)
 
-    assert (a_argsort == numpy.linspace(0, a.size - 1, a.size)).all() == True
+    assert (a_argsort == numpy.linspace(0, a.size - 1, a.size)).all()
     assert a_argsort.shape == a.shape
 
 
@@ -241,9 +240,9 @@ def test_real():
     a_real = real(a)
     a_real2 = real(a + 1j * a)
 
-    assert (a_real == a).all() == True
+    assert (a_real == a).all()
     assert a_real.shape == a.shape
-    assert (a_real2 == a).all() == True
+    assert (a_real2 == a).all()
     assert a_real2.shape == a.shape
 
 
@@ -262,7 +261,7 @@ def test_append(a, b):
 
 def test_array_any():
     assert array_any(numpy.zeros((5, 5))) == False
-    assert array_any(numpy.random.rand(5, 5)) == True
+    assert array_any(numpy.random.rand(5, 5))
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -292,8 +291,8 @@ def test_absolute(a, b):
     c_abs = abs(-c)
 
     assert c_abs.shape == c.shape
-    assert isinstance(c_abs, type(c)) == True
-    assert (c == c_abs).all() == True
+    assert isinstance(c_abs, type(c))
+    assert (c == c_abs).all()
 
 
 @pytest.mark.parametrize("sparsity", [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
@@ -304,7 +303,7 @@ def test_sparsify(sparsity):
     d = scipy.sparse.csc_matrix(c)
 
     assert isinstance(sparsify(c, sparsity), scipy.sparse.csc_matrix) == sparsity_check
-    assert isinstance(sparsify(d, sparsity), scipy.sparse.csc_matrix) == True
+    assert isinstance(sparsify(d, sparsity), scipy.sparse.csc_matrix)
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -345,8 +344,8 @@ def test_sign(a, b):
     c = numpy.ones((a, b))
     d = -c
 
-    assert (c == sign(c)).all() == True
-    assert (d == sign(d)).all() == True
+    assert (c == sign(c)).all()
+    assert (d == sign(d)).all()
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -371,7 +370,7 @@ def test_sort(a, b, axis, kind):
 
     assert (
         sort(c, axis=axis, kind=kind) == numpy.sort(c, axis=axis, kind=kind)
-    ).all() == True
+    ).all()
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -381,7 +380,7 @@ def test_sort(a, b, axis, kind):
 def test_linspace(a, b, num, dtype):
     c = linspace(a, b, num, dtype=dtype)
 
-    assert (c == numpy.linspace(a, b, num, dtype=dtype)).all() == True
+    assert (c == numpy.linspace(a, b, num, dtype=dtype)).all()
 
 
 @pytest.mark.parametrize("a", [2, 10, 100])
@@ -389,7 +388,7 @@ def test_linspace(a, b, num, dtype):
 def test_roots(a, dtype):
     c = randn(a, dtype=dtype)
 
-    assert (roots(c) == numpy.roots(c)).all() == True
+    assert (roots(c) == numpy.roots(c)).all()
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -398,7 +397,7 @@ def test_imag(a, b):
     c = numpy.random.randn(a, b)
     d = c + 1j * c
 
-    assert (c == imag(d)).all() == True
+    assert (c == imag(d)).all()
     assert imag(d).shape == c.shape
 
 
@@ -409,7 +408,7 @@ def test_imag(a, b):
 def test_reshape(a, b, newshape, dtype):
     c = randn(a, b, dtype=dtype)
 
-    assert (reshape(c, newshape) == c.reshape(newshape)).all() == True
+    assert (reshape(c, newshape) == c.reshape(newshape)).all()
     assert reshape(c, newshape).dtype == dtype
 
 
@@ -420,7 +419,7 @@ def test_reshape(a, b, newshape, dtype):
 def test_cumsum(a, b, axis, dtype):
     c = randn(a, b, dtype=dtype)
 
-    assert (cumsum(c, axis=axis) == numpy.cumsum(c, axis=axis)).all() == True
+    assert (cumsum(c, axis=axis) == numpy.cumsum(c, axis=axis)).all()
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -429,7 +428,7 @@ def test_maximum(a, b):
     c = numpy.ones((a, b))
     d = numpy.zeros((a, b))
 
-    assert (c == maximum(c, d)).all() == True
+    assert (c == maximum(c, d)).all()
     assert maximum(c, d).shape == c.shape
 
 
@@ -439,7 +438,7 @@ def test_maximum(a, b):
     c = numpy.ones((a, b))
     d = numpy.zeros((a, b))
 
-    assert (c == maximum(c, d)).all() == True
+    assert (c == maximum(c, d)).all()
     assert maximum(c, d).shape == c.shape
 
 
@@ -449,7 +448,7 @@ def test_minimum(a, b):
     c = numpy.ones((a, b))
     d = numpy.zeros((a, b))
 
-    assert (d == minimum(c, d)).all() == True
+    assert (d == minimum(c, d)).all()
     assert minimum(c, d).shape == c.shape
 
 
@@ -474,7 +473,7 @@ def test__numpy_to_sparse(a, b):
 
     assert find_package(d)[1] == "scipy.sparse"
     assert d.shape == c.shape
-    assert (d.toarray() == c).all() == True
+    assert (d.toarray() == c).all()
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -486,7 +485,7 @@ def test__sparse_to_numpy(a, b):
 
     assert find_package(d_out)[1] == "numpy"
     assert d_out.shape == c.shape
-    assert (d_out == c).all() == True
+    assert (d_out == c).all()
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])

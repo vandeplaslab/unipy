@@ -1,0 +1,121 @@
+# The full test suite, which will be run anytime anything is merged into main.
+# See test_pull_request.yml for the tests that will be run
+name: Full Test
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+concurrency:
+  group: comprehensive-test
+
+jobs:
+  manifest:
+    name: Check Manifest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install check-manifest
+      - name: Check Manifest
+        run: check-manifest
+
+  test:
+    name: ${{ matrix.platform }} py${{ matrix.python }} ${{ matrix.toxenv }}
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-latest, windows-latest]
+        python: ["3.8", "3.9", "3.10"]
+        backend: [pyqt5, pyside2]
+        include:
+          - python: 3.9
+            platform: macos-latest
+          # test with minimum specified requirements
+          - python: 3.8
+            platform: ubuntu-18.04
+          # test with --async_only
+          - python: 3.8
+            platform: ubuntu-18.04
+          # test without any Qt backends
+          - python: 3.8
+            platform: ubuntu-18.04
+
+
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.10.0
+        with:
+          access_token: ${{ github.token }}
+
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+          cache: "pip"
+
+      # here we pass off control of environment creation and running of tests to tox
+      # tox-gh-actions, installed above, helps to convert environment variables into
+      # tox "factors" ... limiting the scope of what gets tested on each platform
+      # The one exception is if the "toxenv" environment variable has been set,
+      # in which case we are declaring one specific tox environment to run.
+      # see tox.ini for more
+      - name: Test with tox
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          run: python -m tox
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          BACKEND: ${{ matrix.backend }}
+          TOXENV: ${{ matrix.toxenv }}
+
+      - name: Coverage
+        uses: codecov/codecov-action@v3
+
+#      - name: Report Failures
+#        if: ${{ failure() }}
+#        uses: JasonEtco/create-an-issue@v2
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          PLATFORM: ${{ matrix.platform }}
+#          PYTHON: ${{ matrix.python }}
+#          TITLE: "[test-bot] Comprehensive tests failing"
+#        with:
+#          filename: .github/TEST_FAIL_TEMPLATE.md
+#          update_existing: true
+
+  test_pip_install:
+    name: ubuntu-latest 3.9 pip install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+          cache: "pip"
+
+      - name: Install this commit
+        run: |
+          pip install --upgrade pip
+          pip install "[all,testing]"
+
+      - name: Test
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          run: python -m pytest --pyargs unipy --color=yes

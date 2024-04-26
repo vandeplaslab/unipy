@@ -145,3 +145,4 @@ dmypy.json
 # extras
 databases/
 _version.py
+.idea/
