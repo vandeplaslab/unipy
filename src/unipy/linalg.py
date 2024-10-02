@@ -27,7 +27,6 @@ HAS_TORCH = torch is not None
 
 from unipy import types as ty
 from unipy.core import (
-    _sparse_to_numpy,
     absolute,
     append,
     argsort,
@@ -386,8 +385,10 @@ def _svd_arraytype(a: ty.Array, method: str) -> tuple[str, ty.Array]:
     """
     a, hs_math = find_package(a)
     if method in ty.SVD_INPUT[hs_math]:
-        return (hs_math, a)
+        return hs_math, a
     else:
+        import unipy.core as uc
+
         val = None
         for key in ty.SVD_INPUT.keys():
             if method in ty.SVD_INPUT[key]:
@@ -396,11 +397,13 @@ def _svd_arraytype(a: ty.Array, method: str) -> tuple[str, ty.Array]:
             raise Exception("No convertion is found for " + method)
 
         warnings.warn(
-            "The type of input array is changed, this may lead to overhead due to GPU/CPU transition or sparse/dense transition."
+            "The type of input array is changed, this may lead to overhead due to GPU/CPU transition or sparse/dense"
+            " transition."
         )
-        a = eval("_" + ty.SHORT_NAME_CLASS[hs_math] + "_to_" + ty.SHORT_NAME_CLASS[val])(a)
-
-        return (hs_math, a)
+        func_name = "_" + ty.SHORT_NAME_CLASS[hs_math] + "_to_" + ty.SHORT_NAME_CLASS[val]
+        func = getattr(uc, func_name)
+        a = func(a)
+        return hs_math, a
 
 
 def _svd_invert_arraytype(a: Union[ty.Array, tuple[ty.Array]], hs_math: str) -> Union[ty.Array, tuple[ty.Array]]:
@@ -426,12 +429,20 @@ def _svd_invert_arraytype(a: Union[ty.Array, tuple[ty.Array]], hs_math: str) -> 
     if hs_math == hs_math_current:
         return a
     else:
+        import unipy.core as uc
+
         if isinstance(a, tuple):
+            func_name = "_" + ty.SHORT_NAME_CLASS[hs_math_current] + "_to_" + ty.SHORT_NAME_CLASS[hs_math]
+            func = getattr(uc, func_name)
+
             a = list(a)
-            a = [eval("_" + ty.SHORT_NAME_CLASS[hs_math_current] + "_to_" + ty.SHORT_NAME_CLASS[hs_math])(q) for q in a]
+            a = [func(q) for q in a]
             a = tuple(a)
         else:
-            a = eval("_" + ty.SHORT_NAME_CLASS[hs_math_current] + "_to_" + ty.SHORT_NAME_CLASS[hs_math])(a)
+            func_name = "_" + ty.SHORT_NAME_CLASS[hs_math_current] + "_to_" + ty.SHORT_NAME_CLASS[hs_math]
+            func = getattr(uc, func_name)
+
+            a = func(a)
         return a
 
 
