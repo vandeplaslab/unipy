@@ -1,14 +1,16 @@
 """Utility functions."""
 
+from __future__ import annotations
+
 import numbers
-from typing import Tuple
+from typing import Any, Tuple
 
 import numpy
 
-from . import types as ty
+from unipy import types as ty
 
 
-def find_package(*args) -> Tuple[numbers.Real, ty.Array, str]:
+def find_package(*args: Any) -> Tuple[numbers.Real | ty.Array, str]:
     """Searches for the corresponding linear algebra toolbox provided in ty.TYPE_CLASS at the start of this file.
      Also gives the ability to change array types.
 
@@ -32,11 +34,7 @@ def find_package(*args) -> Tuple[numbers.Real, ty.Array, str]:
                 result.append(a.A)
             else:
                 result.append(a)
-            atype.append(
-                ty.TYPE_CLASS[
-                    list(ty.TYPE_CLASS.keys())[[i for i, x in enumerate(check) if x][0]]
-                ]
-            )
+            atype.append(ty.TYPE_CLASS[list(ty.TYPE_CLASS.keys())[next(i for i, x in enumerate(check) if x)]])
         elif isinstance(a, numbers.Real):
             result.append(a)
             atype.append("real")
@@ -48,7 +46,7 @@ def find_package(*args) -> Tuple[numbers.Real, ty.Array, str]:
 
 
 def _atype_list_to_string(atype: list[str]) -> str:
-    """Converts list of strings containing array types to a single array type
+    """Converts list of strings containing array types to a single array type.
 
     Parameters
     ----------
@@ -67,11 +65,7 @@ def _atype_list_to_string(atype: list[str]) -> str:
         atype = atype_set[0] if atype_set[0] != "real" else atype_set[1]
     elif all(elem == atype[0] for elem in atype):
         atype = atype[0]
-    elif (
-        atype.count("numpy") > 0
-        and atype.count("cupy") == 0
-        and atype.count("cupyx.scipy.sparse") == 0
-    ):
+    elif atype.count("numpy") > 0 and atype.count("cupy") == 0 and atype.count("cupyx.scipy.sparse") == 0:
         atype = "numpy"
     else:
         raise Exception(

@@ -1,18 +1,37 @@
 """Test linalg namespace."""
+
 import pytest
 import scipy.sparse
 import scipy.sparse.linalg
 
 from unipy.core import *
 from unipy.linalg import *
-from unipy.linalg import (_arpack, _convert_datatype, _fbpca, _lobpcg,
-                          _numpy_gesdd, _order, _propack, _pytorch,
-                          _pytorch_randomized, _randomized,
-                          _recycling_randomized, _scipy_gesdd, _scipy_gesvd,
-                          _sparse_arpack, _sparse_fbpca, _sparse_lobpcg,
-                          _sparse_propack, _sparse_randomized, _svd_arraytype,
-                          _svd_invert_arraytype, _svd_invert_transpose,
-                          _svd_transpose, _svdecon, _unpack)
+from unipy.linalg import (
+    _arpack,
+    _convert_datatype,
+    _fbpca,
+    _lobpcg,
+    _numpy_gesdd,
+    _order,
+    _propack,
+    _pytorch,
+    _pytorch_randomized,
+    _randomized,
+    _recycling_randomized,
+    _scipy_gesdd,
+    _scipy_gesvd,
+    _sparse_arpack,
+    _sparse_fbpca,
+    _sparse_lobpcg,
+    _sparse_propack,
+    _sparse_randomized,
+    _svd_arraytype,
+    _svd_invert_arraytype,
+    _svd_invert_transpose,
+    _svd_transpose,
+    _svdecon,
+    _unpack,
+)
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -111,10 +130,7 @@ def test_norm(a, b, dtype, ord):
 def test_norm_keepdims(a, b, ord, keepdims):
     c = numpy.random.rand(a, b)
 
-    assert (
-        norm(c, ord, keepdims=keepdims).shape
-        == numpy.linalg.norm(c, ord, keepdims=keepdims).shape
-    )
+    assert norm(c, ord, keepdims=keepdims).shape == numpy.linalg.norm(c, ord, keepdims=keepdims).shape
 
 
 @pytest.mark.filterwarnings("ignore:The type of input")
@@ -587,11 +603,7 @@ def test__pytorch_randomized(a, b, compute_uv):
 @pytest.mark.parametrize("iter_type", ["qr", "lu", "power"])
 def test__recycling_randomized(a, b, v0, compute_uv, recycling, iter_type):
     c = numpy.random.rand(a, b)
-    v0 = (
-        (numpy.linalg.svd(c, compute_uv=True, full_matrices=False)[2])[0, :]
-        if v0 is True
-        else v0
-    )
+    v0 = (numpy.linalg.svd(c, compute_uv=True, full_matrices=False)[2])[0, :] if v0 is True else v0
     d = _recycling_randomized(c, compute_uv, v0, 1, 10, 2, recycling, None, iter_type)
 
     if compute_uv is True:
@@ -752,7 +764,7 @@ def test__sparse_fbpca(a, b, compute_uv):
 @pytest.mark.parametrize("compute_uv", [True, False])
 def test__sparse_randomized(a, b, compute_uv):
     c = numpy.random.rand(a, b)
-    c_sparse = scipy.sparse.csc_matrix(c)
+    scipy.sparse.csc_matrix(c)
     d = _sparse_randomized(c, 1, compute_uv, 10, 2, None, "auto")
 
     if compute_uv is True:
@@ -836,11 +848,7 @@ def test__pytorch(a, b, compute_uv):
 def test_svd(a, sparse, compute_uv, method):
     a = scipy.sparse.csc_matrix(a) if sparse is True else a
     q = svd(a, {"method": method, "compute_uv": compute_uv})
-    assert (
-        isinstance(q, tuple)
-        or isinstance(q, numpy.ndarray)
-        or isinstance(q, scipy.sparse.spmatrix)
-    )
+    assert isinstance(q, tuple) or isinstance(q, numpy.ndarray) or isinstance(q, scipy.sparse.spmatrix)
 
 
 @pytest.mark.skipif(not HAS_TORCH, reason="PyTorch is not installed.")
@@ -858,11 +866,7 @@ def test_svd(a, sparse, compute_uv, method):
 def test_svd(a, sparse, compute_uv, method):
     a = scipy.sparse.csc_matrix(a) if sparse is True else a
     q = svd(a, {"method": method, "compute_uv": compute_uv})
-    assert (
-        isinstance(q, tuple)
-        or isinstance(q, numpy.ndarray)
-        or isinstance(q, scipy.sparse.spmatrix)
-    )
+    assert isinstance(q, tuple) or isinstance(q, numpy.ndarray) or isinstance(q, scipy.sparse.spmatrix)
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])

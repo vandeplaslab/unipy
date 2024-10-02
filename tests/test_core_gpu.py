@@ -19,38 +19,31 @@ def test_find_package(x, package_check):
 
 
 def test_sqrt():
-
-    assert True == True
+    assert True is True
 
 
 def test_clip():
-
-    assert True == True
+    assert True is True
 
 
 def test_count_nonzero():
-
-    assert True == True
+    assert True is True
 
 
 def test_zero():
-
-    assert True == True
+    assert True is True
 
 
 def test_matmul():
-
-    assert True == True
+    assert True is True
 
 
 def test_multiply():
-
-    assert True == True
+    assert True is True
 
 
 def test_astype():
-
-    assert True == True
+    assert True is True
 
 
 # @pytest.mark.parametrize(

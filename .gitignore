@@ -146,3 +146,4 @@ dmypy.json
 databases/
 _version.py
 .idea/
+.DS_Store
