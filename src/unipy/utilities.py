@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import numbers
-from typing import Any, Tuple
+import typing as ty
 
 import numpy
 
-from unipy import types as ty
+import unipy.types as uty
 
 
-def find_package(*args: Any) -> Tuple[numbers.Real | ty.Array, str]:
+def find_package(*args: ty.Any) -> tuple[numbers.Real | uty.Array, str]:
     """Searches for the corresponding linear algebra toolbox provided in ty.TYPE_CLASS at the start of this file.
      Also gives the ability to change array types.
 
@@ -28,13 +28,13 @@ def find_package(*args: Any) -> Tuple[numbers.Real | ty.Array, str]:
     result = []
     atype = []
     for a in args:
-        check = [isinstance(a, b) for b in ty.TYPE_CLASS.keys()]
+        check = [isinstance(a, b) for b in uty.TYPE_CLASS.keys()]
         if any(check) is True:
             if isinstance(a, numpy.matrix):
                 result.append(a.A)
             else:
                 result.append(a)
-            atype.append(ty.TYPE_CLASS[list(ty.TYPE_CLASS.keys())[next(i for i, x in enumerate(check) if x)]])
+            atype.append(uty.TYPE_CLASS[list(uty.TYPE_CLASS.keys())[next(i for i, x in enumerate(check) if x)]])
         elif isinstance(a, numbers.Real):
             result.append(a)
             atype.append("real")
