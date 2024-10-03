@@ -1,4 +1,5 @@
 """Types."""
+
 from typing import Union
 
 import numpy
@@ -49,10 +50,8 @@ try:
         }
     )
 
-except ImportError as e:
-    print(
-        "Note: cupy and/or cupyx cannot be found, they are not necessary to use unipy."
-    )
+except ImportError:
+    print("Note: cupy and/or cupyx cannot be found, they are not necessary to use unipy.")
 
 SHORT_NAME_CLASS = {
     "numpy": "numpy",

@@ -87,7 +87,6 @@ def test_clip_overwrite():
     ],
 )
 def test_count_nonzero(x):
-
     assert count_nonzero(x) == x.sum()
 
 
@@ -260,7 +259,7 @@ def test_append(a, b):
 
 
 def test_array_any():
-    assert array_any(numpy.zeros((5, 5))) == False
+    assert array_any(numpy.zeros((5, 5))) is False
     assert array_any(numpy.random.rand(5, 5))
 
 
@@ -356,9 +355,7 @@ def test_amax(a, b, axis):
     d = scipy.sparse.csc_matrix(c)
 
     assert amax(c, axis=axis).shape == (c.shape[1 - axis],)
-    assert (
-        amax(d, axis=axis).shape == (1 - axis, d.shape[1 - axis], axis)[axis : axis + 2]
-    )
+    assert amax(d, axis=axis).shape == (1 - axis, d.shape[1 - axis], axis)[axis : axis + 2]
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])
@@ -368,9 +365,7 @@ def test_amax(a, b, axis):
 def test_sort(a, b, axis, kind):
     c = numpy.random.rand(a, b)
 
-    assert (
-        sort(c, axis=axis, kind=kind) == numpy.sort(c, axis=axis, kind=kind)
-    ).all()
+    assert (sort(c, axis=axis, kind=kind) == numpy.sort(c, axis=axis, kind=kind)).all()
 
 
 @pytest.mark.parametrize("a", [1, 10, 100])

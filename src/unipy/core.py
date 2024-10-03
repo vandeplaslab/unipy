@@ -1,6 +1,6 @@
-from __future__ import annotations
+"""Core utilities."""
 
-from typing import Optional, Union
+from __future__ import annotations
 
 import numpy
 import scipy.sparse
@@ -11,16 +11,14 @@ try:
     import cupyx
     import cupyx.scipy.sparse.linalg
 except ImportError:
-    print(
-        "Note: cupy and/or cupyx (toolboxes) cannot be found, they are not necessary to use unipy."
-    )
+    print("Note: cupy and/or cupyx (toolboxes) cannot be found, they are not necessary to use unipy.")
     cupy, cupyx = None, None
 
-from . import types as ty
-from .utilities import find_package
+from unipy import types as ty
+from unipy.utilities import find_package
 
 
-def absolute(a: ty.Array, out: Optional[ty.Array] | None = None) -> ty.Array:
+def absolute(a: ty.Array, out: ty.Array | None | None = None) -> ty.Array:
     """Return the element-wise absolute value of an array.
 
     Parameters
@@ -48,7 +46,7 @@ def absolute(a: ty.Array, out: Optional[ty.Array] | None = None) -> ty.Array:
         return a
 
 
-def sqrt(a: ty.Array, out: Optional[ty.Array] = None) -> ty.Array:
+def sqrt(a: ty.Array, out: ty.Array | None = None) -> ty.Array:
     """Return the non-negative square-root of an array, element-wise.
 
     Parameters
@@ -78,11 +76,11 @@ def sqrt(a: ty.Array, out: Optional[ty.Array] = None) -> ty.Array:
 
 def clip(
     a: ty.Array,
-    b: Union[int, float, None],
-    c: Union[int, float, None],
-    out: Optional[ty.Array] = None,
+    b: int | float | None,
+    c: int | float | None,
+    out: ty.Array | None = None,
 ) -> ty.Array:
-    """Clip (limit) the values in an array
+    """Clip (limit) the values in an array.
 
     Parameters
     ----------
@@ -117,7 +115,7 @@ def clip(
 
 
 def count_nonzero(a: ty.Array) -> int:
-    """Count nonzero entries in array
+    """Count nonzero entries in array.
 
     Parameters
     ----------
@@ -141,7 +139,7 @@ def count_nonzero(a: ty.Array) -> int:
 
 
 def zeros(shape: tuple, dtype: str = "float32", atype: str = "numpy") -> ty.Array:
-    """Create array of zeros
+    """Create array of zeros.
 
     Parameters
     ----------
@@ -170,7 +168,7 @@ def zeros(shape: tuple, dtype: str = "float32", atype: str = "numpy") -> ty.Arra
 
 
 def ones(shape: tuple, dtype: str = "float32", atype: str = "numpy") -> ty.Array:
-    """Create array of ones
+    """Create array of ones.
 
     Parameters
     ----------
@@ -192,13 +190,10 @@ def ones(shape: tuple, dtype: str = "float32", atype: str = "numpy") -> ty.Array
         return numpy.ones(shape, dtype=dtype)
     elif atype == "cupy":
         return cupy.ones(shape, dtype=dtype)
-    else:
-        raise Exception("ONES not found for " + atype)
+    raise Exception("ONES not found for " + atype)
 
 
-def linspace(
-    a: int, b: int, num: int, dtype: str = "float32", atype: str = "numpy"
-) -> ty.Array:
+def linspace(a: int, b: int, num: int, dtype: str = "float32", atype: str = "numpy") -> ty.Array:
     """Return evenly spaced numbers over a specified interval.
 
     Parameters
@@ -227,13 +222,10 @@ def linspace(
         return numpy.linspace(a, b, num, dtype=dtype)
     elif atype == "cupy":
         return cupy.linspace(a, b, num, dtype=dtype)
-    else:
-        raise Exception("LINSPACE not found for " + atype)
+    raise Exception("LINSPACE not found for " + atype)
 
 
-def cumsum(
-    a: ty.Array, axis: Union[int, None] = None, out: Optional[ty.Array] = None
-) -> ty.Array:
+def cumsum(a: ty.Array, axis: int | None = None, out: ty.Array | None = None) -> ty.Array:
     """Return the cumulative sum of the elements along a given axis.
 
     Parameters
@@ -257,11 +249,10 @@ def cumsum(
         return numpy.cumsum(a, axis=axis, out=out)
     elif hs_math == "cupy":
         return cupy.cumsum(a, axis=axis, out=out)
-    else:
-        raise Exception("CUMSUM not found for " + hs_math)
+    raise Exception("CUMSUM not found for " + hs_math)
 
 
-def reshape(a: ty.Array, newshape: Union[int, tuple]) -> ty.Array:
+def reshape(a: ty.Array, newshape: int | tuple) -> ty.Array:
     """Gives a new shape to an array without changing its data.
 
     Parameters
@@ -282,8 +273,7 @@ def reshape(a: ty.Array, newshape: Union[int, tuple]) -> ty.Array:
         return numpy.reshape(a, newshape)
     elif hs_math == "cupy":
         return cupy.reshape(a, newshape)
-    else:
-        raise Exception("RESHAPE not found for " + hs_math)
+    raise Exception("RESHAPE not found for " + hs_math)
 
 
 def roots(a: ty.Array) -> ty.Array:
@@ -304,8 +294,7 @@ def roots(a: ty.Array) -> ty.Array:
         return numpy.roots(a)
     elif hs_math == "cupy":
         return cupy.roots(a)
-    else:
-        raise Exception("ROOTS not found for " + hs_math)
+    raise Exception("ROOTS not found for " + hs_math)
 
 
 def imag(a: ty.Array) -> ty.Array:
@@ -326,12 +315,11 @@ def imag(a: ty.Array) -> ty.Array:
         return numpy.imag(a)
     elif hs_math == "cupy":
         return cupy.imag(a)
-    else:
-        raise Exception("IMAG not found for " + hs_math)
+    raise Exception("IMAG not found for " + hs_math)
 
 
-def matmul(a: ty.Array, b: ty.Array, out: Optional[ty.Array] = None) -> ty.Array:
-    """Matrix product of two matrices
+def matmul(a: ty.Array, b: ty.Array, out: ty.Array | None = None) -> ty.Array:
+    """Matrix product of two matrices.
 
     Parameters
     ----------
@@ -361,8 +349,8 @@ def matmul(a: ty.Array, b: ty.Array, out: Optional[ty.Array] = None) -> ty.Array
         return a.dot(b)
 
 
-def multiply(a: ty.Array, b: ty.Array, out: Optional[ty.Array] = None) -> ty.Array:
-    """Element-wise multiply two matrices
+def multiply(a: ty.Array, b: ty.Array, out: ty.Array | None = None) -> ty.Array:
+    """Element-wise multiply two matrices.
 
     Parameters
     ----------
@@ -392,8 +380,8 @@ def multiply(a: ty.Array, b: ty.Array, out: Optional[ty.Array] = None) -> ty.Arr
         return a.multiply(b)
 
 
-def divide(a: ty.Array, b: ty.Array, out: Optional[ty.Array] = None) -> ty.Array:
-    """Element-wise divide two matrices
+def divide(a: ty.Array, b: ty.Array, out: ty.Array | None = None) -> ty.Array:
+    """Element-wise divide two matrices.
 
     Parameters
     ----------
@@ -417,13 +405,12 @@ def divide(a: ty.Array, b: ty.Array, out: Optional[ty.Array] = None) -> ty.Array
         return numpy.divide(a, b, out=out)
     elif hs_math == "cupy":
         return cupy.divide(a, b, out=out)
-    else:
-        raise Exception("DIVIDE not found for " + hs_math)
+    raise Exception("DIVIDE not found for " + hs_math)
 
 
 def astype(a: ty.Array, dtype: str, copy: bool = False) -> ty.Array:
     """Redefine datatype of array and/or create a copy in memory.
-    Note: cupyx.scipy.sparse always returns a copy
+    Note: cupyx.scipy.sparse always returns a copy.
 
     Parameters
     ----------
@@ -453,7 +440,7 @@ def astype(a: ty.Array, dtype: str, copy: bool = False) -> ty.Array:
 
 
 def transpose(a: ty.Array) -> ty.Array:
-    """Transposes input array
+    """Transposes input array.
 
     Parameters
     ----------
@@ -476,7 +463,7 @@ def transpose(a: ty.Array) -> ty.Array:
 
 
 def argsort(a: ty.MinArray) -> ty.MinArray:
-    """Sorts input array
+    """Sorts input array.
 
     Parameters
     ----------
@@ -492,12 +479,11 @@ def argsort(a: ty.MinArray) -> ty.MinArray:
         return numpy.argsort(a)
     elif hs_math == "cupy":
         return cupy.argsort(a)
-    else:
-        raise Exception("ARGSORT not found for " + hs_math)
+    raise Exception("ARGSORT not found for " + hs_math)
 
 
 def real(a: ty.MinArray) -> ty.MinArray:
-    """Retuns the real value of input array
+    """Retuns the real value of input array.
 
     Parameters
     ----------
@@ -513,14 +499,11 @@ def real(a: ty.MinArray) -> ty.MinArray:
         return numpy.real(a)
     elif hs_math == "cupy":
         return cupy.real(a)
-    else:
-        raise Exception("REAL not found for " + hs_math)
+    raise Exception("REAL not found for " + hs_math)
 
 
-def append(
-    a: ty.MinArray, b: ty.MinArray, axis: Union[int, None] = None
-) -> ty.MinArray:
-    """Returns the minimum value(s) of input array on axis
+def append(a: ty.MinArray, b: ty.MinArray, axis: int | None = None) -> ty.MinArray:
+    """Returns the minimum value(s) of input array on axis.
 
     Parameters
     ----------
@@ -543,12 +526,11 @@ def append(
         return numpy.append(a, b, axis=axis)
     elif hs_math == "cupy":
         return cupy.append(a, b, axis=axis)
-    else:
-        raise Exception("APPEND not found for " + hs_math)
+    raise Exception("APPEND not found for " + hs_math)
 
 
 def array_any(a: ty.MinArray) -> bool:
-    """Checks if some values of input matrix are set (i.e. non-zero)
+    """Checks if some values of input matrix are set (i.e. non-zero).
 
     Parameters
     ----------
@@ -564,15 +546,14 @@ def array_any(a: ty.MinArray) -> bool:
         return numpy.any(a)
     elif hs_math == "cupy":
         return cupy.any(a)
-    else:
-        raise Exception("ARRAY_ANY not found for " + hs_math)
+    raise Exception("ARRAY_ANY not found for " + hs_math)
 
 
 def rand(
     *args: int,
     atype: str = "numpy",
     dtype: str = "float32",
-    random_state: Union[int, None] = None,
+    random_state: int | None = None,
 ) -> ty.MinArray:
     """Returns an array of uniform random values over the interval [0, 1).
 
@@ -599,15 +580,14 @@ def rand(
         return astype(numpy.random.rand(*args), dtype=dtype)
     elif atype == "cupy":
         return astype(cupy.random.rand(*args), dtype=dtype)
-    else:
-        raise Exception("RAND not found for " + atype)
+    raise Exception("RAND not found for " + atype)
 
 
 def randn(
     *args: int,
     atype: str = "numpy",
     dtype: str = "float32",
-    random_state: Union[int, None] = None,
+    random_state: int | None = None,
 ) -> ty.MinArray:
     """Return a sample (or samples) from the “standard normal” distribution.
 
@@ -634,14 +614,11 @@ def randn(
         return astype(numpy.random.randn(*args), dtype=dtype)
     elif atype == "cupy":
         return astype(cupy.random.randn(*args), dtype=dtype)
-    else:
-        raise Exception("RANDN not found for " + atype)
+    raise Exception("RANDN not found for " + atype)
 
 
-def amax(
-    a: ty.Array, axis: Union[int, None, tuple] = None, out: Optional[ty.Array] = None
-) -> Union[ty.Array, float]:
-    """Finds the largest element
+def amax(a: ty.Array, axis: int | None | tuple = None, out: ty.Array | None = None) -> ty.Array | float:
+    """Finds the largest element.
 
     Parameters
     ----------
@@ -671,7 +648,7 @@ def amax(
 
 
 def copyto(a: ty.Array, b: ty.Array) -> ty.Array:
-    """Copy matrices without reallocating memory
+    """Copy matrices without reallocating memory.
 
     Parameters
     ----------
@@ -704,11 +681,11 @@ def copyto(a: ty.Array, b: ty.Array) -> ty.Array:
 
 def sum(
     a: ty.Array,
-    axis: Union[int, None, tuple] = None,
-    out: Optional[ty.Array] = None,
+    axis: int | None | tuple = None,
+    out: ty.Array | None = None,
     keepdims: bool = False,
-) -> Union[ty.Array, float]:
-    """Sums along certain axis or axes of input array
+) -> ty.Array | float:
+    """Sums along certain axis or axes of input array.
 
     Parameters
     ----------
@@ -746,49 +723,8 @@ def sum(
         return a.sum(axis, out=out)
 
 
-<<<<<<< HEAD
-def find_package(
-    *args,
-) -> tuple[numbers.Real, array, str]:
-    """Searches for the corresponding linear algebra toolbox provided in type_class at the start of this file. Also gives the ability to change array types.
-
-    Parameters
-    ----------
-    a : array
-        Variable used for finding corresponding linear algebra toolbox
-
-    Returns
-    -------
-        tuple(array, str) : Array containing input array (possible modification) and string containing the right pointer to the toolbox in string format
-
-    """
-    result = []
-    atype = []
-    i = 0
-    for a in args:
-        check = [isinstance(a, b) for b in type_class.keys()]
-        if any(check) is True:
-            if isinstance(a, numpy.matrix):
-                result.append(a.A)
-            else:
-                result.append(a)
-            atype.append(
-                type_class[
-                    list(type_class.keys())[[i for i, x in enumerate(check) if x][0]]
-                ]
-            )
-        elif isinstance(a, numbers.Real):
-            result.append(a)
-            atype.append("real")
-        else:
-            raise Exception("Data type not supported.", type(a))
-
-    result.append(_atype_list_to_string(atype))
-    return tuple(result)
-
-
 def _atype_list_to_string(atype: list[str]) -> str:
-    """Converts list of strings containing array types to a single array type
+    """Converts list of strings containing array types to a single array type.
 
     Parameters
     ----------
@@ -807,16 +743,9 @@ def _atype_list_to_string(atype: list[str]) -> str:
         atype = atype_set[0] if atype_set[0] != "real" else atype_set[1]
     elif all(elem == atype[0] for elem in atype):
         atype = atype[0]
-    elif (
-        atype.count("numpy") > 0
-        and atype.count("cupy") == 0
-        and atype.count("cupyx.scipy.sparse") == 0
-    ):
+    elif atype.count("numpy") > 0 and atype.count("cupy") == 0 and atype.count("cupyx.scipy.sparse") == 0:
         atype = "numpy"
-    elif (
-        atype.count("cupy") > 0
-        and atype.count("cupyx.scipy.sparse") > 0
-    ):
+    elif atype.count("cupy") > 0 and atype.count("cupyx.scipy.sparse") > 0:
         atype = "cupyx.scipy.sparse"
     else:
         raise Exception(
@@ -825,10 +754,7 @@ def _atype_list_to_string(atype: list[str]) -> str:
     return atype
 
 
-def sign(a: array, out: Union[array, None] = None) -> array:
-=======
-def sign(a: ty.Array, out: Optional[ty.Array] = None) -> ty.Array:
->>>>>>> b00cb54a61d84ee47bcf36f962e55ca2c7d25926
+def sign(a: ty.Array, out: ty.Array | None = None) -> ty.Array:
     """Returns an element-wise indication of the sign of a number.
 
     Parameters
@@ -845,15 +771,14 @@ def sign(a: ty.Array, out: Optional[ty.Array] = None) -> ty.Array:
         return numpy.sign(a, out=out)
     elif hs_math == "cupy":
         return cupy.sign(a, out=out)
-    else:
-        raise Exception("SIGN not yet implemented for " + hs_math)
+    raise Exception("SIGN not yet implemented for " + hs_math)
 
 
 def maximum(
-    a: Union[float, ty.Array],
-    b: Union[float, ty.Array],
-    out: Optional[ty.Array] = None,
-) -> Union[float, ty.Array]:
+    a: float | ty.Array,
+    b: float | ty.Array,
+    out: ty.Array | None = None,
+) -> float | ty.Array:
     """Element-wise maximum of array elements.
 
     Parameters
@@ -878,13 +803,10 @@ def maximum(
         return numpy.maximum(a, b, out=out)
     elif hs_math == "cupy":
         return cupy.maximum(a, b, out=out)
-    else:
-        raise Exception("MAXIMUM not yet implemented for " + hs_math)
+    raise Exception("MAXIMUM not yet implemented for " + hs_math)
 
 
-def minimum(
-    a: Union[float, ty.Array], b: Union[float, ty.Array], out: Optional[ty.Array] = None
-) -> Union[float, ty.Array]:
+def minimum(a: float | ty.Array, b: float | ty.Array, out: ty.Array | None = None) -> float | ty.Array:
     """Element-wise minimum of array elements.
 
     Parameters
@@ -909,14 +831,11 @@ def minimum(
         return numpy.minimum(a, b, out=out)
     elif hs_math == "cupy":
         return cupy.minimum(a, b, out=out)
-    else:
-        raise Exception("MINIMUM not yet implemented for " + hs_math)
+    raise Exception("MINIMUM not yet implemented for " + hs_math)
 
 
-def sort(
-    a: ty.Array, axis: Union[int, None] = None, kind: str = "quicksort"
-) -> ty.Array:
-    """Return a sorted copy of an array
+def sort(a: ty.Array, axis: int | None = None, kind: str = "quicksort") -> ty.Array:
+    """Return a sorted copy of an array.
 
     Parameters
     ----------
@@ -939,12 +858,11 @@ def sort(
         return numpy.sort(a, axis=axis, kind=kind)
     elif hs_math == "cupy":
         return cupy.sort(a, axis=axis)
-    else:
-        raise Exception("SIGN not yet implemented for " + hs_math)
+    raise Exception("SIGN not yet implemented for " + hs_math)
 
 
 def sparsify(a: ty.Array, sparsity: float) -> ty.Array:
-    """Returns sparse version of input array if number of non-zero entries is lower than sparsity
+    """Returns sparse version of input array if number of non-zero entries is lower than sparsity.
 
     Parameters
     ----------
@@ -972,7 +890,7 @@ def sparsify(a: ty.Array, sparsity: float) -> ty.Array:
 
 
 def _numpy_to_sparse(a: numpy.ndarray) -> scipy.sparse.spmatrix:
-    """Convert numpy array to sparse array
+    """Convert numpy array to sparse array.
 
     Parameters
     ----------
@@ -988,7 +906,7 @@ def _numpy_to_sparse(a: numpy.ndarray) -> scipy.sparse.spmatrix:
 
 
 def _sparse_to_numpy(a: scipy.sparse.spmatrix) -> numpy.ndarray:
-    """Convert sparse array to dense numpy array
+    """Convert sparse array to dense numpy array.
 
     Parameters
     ----------
@@ -1004,7 +922,7 @@ def _sparse_to_numpy(a: scipy.sparse.spmatrix) -> numpy.ndarray:
 
 
 def _numpy_to_cupy(a: numpy.ndarray) -> ty.GPUMinArray:
-    """Convert numpy array to cupy array
+    """Convert numpy array to cupy array.
 
     Parameters
     ----------
@@ -1020,7 +938,7 @@ def _numpy_to_cupy(a: numpy.ndarray) -> ty.GPUMinArray:
 
 
 def _cupy_to_numpy(a: ty.GPUMinArray) -> numpy.ndarray:
-    """Convert cupy array to numpy array
+    """Convert cupy array to numpy array.
 
     Parameters
     ----------
@@ -1036,7 +954,7 @@ def _cupy_to_numpy(a: ty.GPUMinArray) -> numpy.ndarray:
 
 
 def _sparse_to_cupy_sparse(a: scipy.sparse.spmatrix) -> ty.GPUSparseArray:
-    """Convert sparse array to cupy sparse array
+    """Convert sparse array to cupy sparse array.
 
     Parameters
     ----------
@@ -1052,7 +970,7 @@ def _sparse_to_cupy_sparse(a: scipy.sparse.spmatrix) -> ty.GPUSparseArray:
 
 
 def _cupy_sparse_to_sparse(a: ty.GPUSparseArray) -> scipy.sparse.spmatrix:
-    """Convert cupy sparse array to sparse array
+    """Convert cupy sparse array to sparse array.
 
     Parameters
     ----------
@@ -1071,7 +989,7 @@ def _cupy_sparse_to_sparse(a: ty.GPUSparseArray) -> scipy.sparse.spmatrix:
 
 
 def _cupy_sparse_to_cupy(a: ty.GPUSparseArray) -> ty.GPUMinArray:
-    """Convert cupy sparse array to dupy dense array
+    """Convert cupy sparse array to dupy dense array.
 
     Parameters
     ----------
@@ -1087,7 +1005,7 @@ def _cupy_sparse_to_cupy(a: ty.GPUSparseArray) -> ty.GPUMinArray:
 
 
 def _cupy_to_cupy_sparse(a: ty.GPUMinArray) -> ty.GPUSparseArray:
-    """Convert cupy dense array to cupy sparse array
+    """Convert cupy dense array to cupy sparse array.
 
     Parameters
     ----------
@@ -1103,7 +1021,7 @@ def _cupy_to_cupy_sparse(a: ty.GPUMinArray) -> ty.GPUSparseArray:
 
 
 def _sparse_to_cupy(a: scipy.sparse.spmatrix) -> ty.GPUMinArray:
-    """Convert sparse array to cupy dnese array
+    """Convert sparse array to cupy dnese array.
 
     Parameters
     ----------
@@ -1119,7 +1037,7 @@ def _sparse_to_cupy(a: scipy.sparse.spmatrix) -> ty.GPUMinArray:
 
 
 def _cupy_to_sparse(a: ty.GPUMinArray) -> scipy.sparse.spmatrix:
-    """Convert cupy array to sparse array
+    """Convert cupy array to sparse array.
 
     Parameters
     ----------
@@ -1135,7 +1053,7 @@ def _cupy_to_sparse(a: ty.GPUMinArray) -> scipy.sparse.spmatrix:
 
 
 def _cupy_sparse_to_numpy(a: ty.GPUSparseArray) -> numpy.ndarray:
-    """Convert cupy sparse array to numpy array
+    """Convert cupy sparse array to numpy array.
 
     Parameters
     ----------
@@ -1151,7 +1069,7 @@ def _cupy_sparse_to_numpy(a: ty.GPUSparseArray) -> numpy.ndarray:
 
 
 def _numpy_to_cupy_sparse(a: numpy.ndarray) -> ty.GPUSparseArray:
-    """Convert numpy array to cupy sparse array
+    """Convert numpy array to cupy sparse array.
 
     Parameters
     ----------
@@ -1167,7 +1085,7 @@ def _numpy_to_cupy_sparse(a: numpy.ndarray) -> ty.GPUSparseArray:
 
 
 def to_arraytype(a: ty.Array, atype: str) -> ty.Array:
-    """Invert arraytype (numpy, scipy.sparse, cupy, cupyx.sparse) to new arraytype
+    """Invert arraytype (numpy, scipy.sparse, cupy, cupyx.sparse) to new arraytype.
 
     Parameters
     ----------
@@ -1186,12 +1104,7 @@ def to_arraytype(a: ty.Array, atype: str) -> ty.Array:
     if atype == hs_math_current:
         return a
     else:
-        a = eval(
-            "_"
-            + ty.SHORT_NAME_CLASS[hs_math_current]
-            + "_to_"
-            + ty.SHORT_NAME_CLASS[atype]
-        )(a)
+        a = eval("_" + ty.SHORT_NAME_CLASS[hs_math_current] + "_to_" + ty.SHORT_NAME_CLASS[atype])(a)
         return a
 
 
@@ -1212,7 +1125,7 @@ def tocupyx(a: ty.Array) -> ty.Array:
 
 
 def soft_threshold(a: ty.Array, eps: float) -> ty.Array:
-    """Soft thresholding of `a` with value of `eps` (clipping is faster than min-max)
+    """Soft thresholding of `a` with value of `eps` (clipping is faster than min-max).
 
     Parameters
     ----------
