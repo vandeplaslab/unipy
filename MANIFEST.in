@@ -1,4 +1,5 @@
 # Top-level config
+include *.in
 include MANIFEST.in
 include LICENSE
 recursive-include unipy *.pyi

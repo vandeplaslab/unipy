@@ -5,8 +5,26 @@ import scipy.sparse
 import scipy.sparse.linalg
 
 from unipy.core import *
+from unipy.core import (
+    absolute,
+    argsort,
+    astype,
+    eigh,
+    eigvalsh,
+    find_package,
+    lu,
+    matmul,
+    norm,
+    numpy,
+    pinv,
+    randn,
+    svd,
+    transpose,
+    zeros,
+)
 from unipy.linalg import *
 from unipy.linalg import (
+    HAS_TORCH,
     _arpack,
     _convert_datatype,
     _fbpca,
@@ -191,27 +209,27 @@ def test__svd_invert_transpose(a, b, compute_uv):
     q_true = numpy.linalg.svd(c, full_matrices=False, compute_uv=compute_uv)
     trans_arg, d = _svd_transpose(c)
     q = numpy.linalg.svd(d, full_matrices=False, compute_uv=compute_uv)
-    l = _svd_invert_transpose(q, trans_arg)
+    lm = _svd_invert_transpose(q, trans_arg)
 
-    assert isinstance(l, type(q_true))
+    assert isinstance(lm, type(q_true))
     if compute_uv is True:
         assert (
             numpy.linalg.norm(
-                absolute(matmul(transpose(l[0]), q_true[0])) - numpy.eye(l[0].shape[1]),
+                absolute(matmul(transpose(lm[0]), q_true[0])) - numpy.eye(lm[0].shape[1]),
                 2,
             )
             < 1e-4
         )
-        assert numpy.linalg.norm(q_true[1] - l[1], 2) < 1e-4
+        assert numpy.linalg.norm(q_true[1] - lm[1], 2) < 1e-4
         assert (
             numpy.linalg.norm(
-                absolute(matmul(l[2], transpose(q_true[2]))) - numpy.eye(l[2].shape[0]),
+                absolute(matmul(lm[2], transpose(q_true[2]))) - numpy.eye(lm[2].shape[0]),
                 2,
             )
             < 1e-4
         )
     else:
-        assert numpy.linalg.norm(q_true - l, 2) < 1e-4
+        assert numpy.linalg.norm(q_true - lm, 2) < 1e-4
 
 
 @pytest.mark.parametrize("compute_uv", [True, False])
