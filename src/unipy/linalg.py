@@ -268,15 +268,16 @@ def svd(a: uty.Array, b: dict | None = None) -> uty.Array | tuple[uty.Array]:
 
     """
     import unipy.core as uc
-    
+
     options = _set_options(b, min(a.shape))
     dtype = a.dtype
     hs_math, a = _svd_arraytype(a, options["method"])
     trans_arg, a = _svd_transpose(a)
-    
+
     func_name = "_" + options["method"]
     func = getattr(uc, func_name)
-    a = func(a,
+    a = func(
+        a,
         compute_uv=options["compute_uv"],
         v0=options["v0"],
         n_oversamples=options["n_oversamples"],
@@ -284,7 +285,8 @@ def svd(a: uty.Array, b: dict | None = None) -> uty.Array | tuple[uty.Array]:
         sv=options["sv"],
         iter_type=options["iter_type"],
         recycling=options["recycling"],
-        random_state=options["random_state"],)
+        random_state=options["random_state"],
+    )
     a = _unpack(a, options["compute_uv"])
     a = _order(a, options["sv"])
     a = _convert_datatype(a, dtype)
