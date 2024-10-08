@@ -49,7 +49,7 @@ def test_qr(a, b):
 
 @pytest.mark.parametrize("a", [1, 10, 100])
 @pytest.mark.parametrize("b", [1, 10, 100])
-def test_lu(a, b):
+def test_lu(a, b, numpy):
     c = numpy.random.rand(a, b)
     p, l, u = lu(c)
 

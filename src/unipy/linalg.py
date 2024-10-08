@@ -267,15 +267,13 @@ def svd(a: uty.Array, b: dict | None = None) -> uty.Array | tuple[uty.Array]:
         Union[array, tuple[array]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
 
     """
-    import unipy.core as uc
-
     options = _set_options(b, min(a.shape))
     dtype = a.dtype
     hs_math, a = _svd_arraytype(a, options["method"])
     trans_arg, a = _svd_transpose(a)
 
     func_name = "_" + options["method"]
-    func = getattr(uc, func_name)
+    func = globals().get(func_name)
     a = func(
         a,
         compute_uv=options["compute_uv"],

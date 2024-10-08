@@ -12,13 +12,9 @@ develop:
 lint:
 	black .
 	isort -y
-	flake8 .
 
 pre:
 	pre-commit run -a
-
-flake:
-	flake8 .
 
 untrack:
 	git rm -r --cached .
