@@ -18,7 +18,7 @@ import unipy.types as uty
 from unipy.utilities import find_package
 
 
-def absolute(a: uty.Array, out: uty.Array | None | None = None) -> uty.Array:
+def absolute(a: uty.Array, out: uty.Array | None = None) -> uty.Array:
     """Return the element-wise absolute value of an array.
 
     Parameters
