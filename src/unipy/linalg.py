@@ -271,8 +271,10 @@ def svd(a: uty.Array, b: dict | None = None) -> uty.Array | tuple[uty.Array]:
     dtype = a.dtype
     hs_math, a = _svd_arraytype(a, options["method"])
     trans_arg, a = _svd_transpose(a)
-    # print('original_package', hs_math)
-    a = eval("_" + options["method"])(
+
+    func_name = "_" + options["method"]
+    func = globals().get(func_name)
+    a = func(
         a,
         compute_uv=options["compute_uv"],
         v0=options["v0"],
@@ -287,15 +289,8 @@ def svd(a: uty.Array, b: dict | None = None) -> uty.Array | tuple[uty.Array]:
     a = _order(a, options["sv"])
     a = _convert_datatype(a, dtype)
     a = _svd_invert_transpose(a, trans_arg)
-    # print('4 - ', a[1], type(a[1]), a[1].dtype, a[1].shape)
-    # print('4 - ', type(a[0]), a[0].dtype, a[0].shape)
-    # print('4 - ', type(a[2]), a[2].dtype, a[2].shape)
-    # print(len(a))
     a = _svd_invert_arraytype(a, hs_math)
-    # print('5 - ', a[1], type(a[1]), a[1].dtype, a[1].shape)
-    # print('5 - ', type(a[0]), a[0].dtype, a[0].shape)
-    # print('5 - ', type(a[2]), a[2].dtype, a[2].shape)
-    # print(len(a))
+
     return a
 
 

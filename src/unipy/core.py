@@ -1103,8 +1103,13 @@ def to_arraytype(a: uty.Array, atype: str) -> uty.Array:
 
     if atype == hs_math_current:
         return a
-    a = eval("_" + uty.SHORT_NAME_CLASS[hs_math_current] + "_to_" + uty.SHORT_NAME_CLASS[atype])(a)
-    return a
+    else:
+        import unipy.core as uc
+
+        func_name = "_" + uty.SHORT_NAME_CLASS[hs_math_current] + "_to_" + uty.SHORT_NAME_CLASS[atype]
+        func = getattr(uc, func_name)
+        a = func(a)
+        return a
 
 
 def tonumpy(a: uty.Array) -> uty.Array:
