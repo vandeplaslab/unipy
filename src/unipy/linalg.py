@@ -267,13 +267,16 @@ def svd(a: uty.Array, b: dict | None = None) -> uty.Array | tuple[uty.Array]:
         Union[array, tuple[array]]: Array(s) containing singular value (and vectors) -> s, or (u, s, vt)
 
     """
+    import unipy.core as uc
+    
     options = _set_options(b, min(a.shape))
     dtype = a.dtype
     hs_math, a = _svd_arraytype(a, options["method"])
     trans_arg, a = _svd_transpose(a)
-    # print('original_package', hs_math)
-    a = eval("_" + options["method"])(
-        a,
+    
+    func_name = "_" + options["method"]
+    func = getattr(uc, func_name)
+    a = func(a,
         compute_uv=options["compute_uv"],
         v0=options["v0"],
         n_oversamples=options["n_oversamples"],
@@ -281,21 +284,13 @@ def svd(a: uty.Array, b: dict | None = None) -> uty.Array | tuple[uty.Array]:
         sv=options["sv"],
         iter_type=options["iter_type"],
         recycling=options["recycling"],
-        random_state=options["random_state"],
-    )
+        random_state=options["random_state"],)
     a = _unpack(a, options["compute_uv"])
     a = _order(a, options["sv"])
     a = _convert_datatype(a, dtype)
     a = _svd_invert_transpose(a, trans_arg)
-    # print('4 - ', a[1], type(a[1]), a[1].dtype, a[1].shape)
-    # print('4 - ', type(a[0]), a[0].dtype, a[0].shape)
-    # print('4 - ', type(a[2]), a[2].dtype, a[2].shape)
-    # print(len(a))
     a = _svd_invert_arraytype(a, hs_math)
-    # print('5 - ', a[1], type(a[1]), a[1].dtype, a[1].shape)
-    # print('5 - ', type(a[0]), a[0].dtype, a[0].shape)
-    # print('5 - ', type(a[2]), a[2].dtype, a[2].shape)
-    # print(len(a))
+
     return a
 
 
